@@ -1,0 +1,79 @@
+import pyb
+import time
+import math
+
+pinC13 = pyb.Pin (pyb.Pin.cpu.C13)
+pinA5 = pyb.Pin (pyb.Pin.cpu.A5)
+tim2 = pyb.Timer(2, freq = 20000)
+t2ch1 = tim2.channel(1, pyb.Timer.PWM, pin=pinA5)
+
+def onButtonPressCallback(IRQ_src):
+    global buttonPressed
+    buttonPressed = True
+    
+def SawWave(t):
+    return (t % 1)
+
+def SquareWave(t):
+    if t % 1 < 0.5:
+        return (1)
+    else:
+        return (0)        
+
+def SineWave(t):
+    return (math.sin((2*3.1415/10)*t)/2) + 0.5
+
+ButtonInt = pyb.ExtInt(pinC13, mode=pyb.ExtInt.IRQ_FALLING,
+                       pull=pyb.Pin.PULL_NONE, callback=onButtonPressCallback)
+
+if __name__ == '__main__':
+    buttonPressed = False
+    state = 0
+    print('In State zero')
+    print('Welcome to our brightness modifier. Press the blue user button to cycle through LED patterns.')
+    
+    while True:
+        try:
+            
+            if state == 0:
+                #Run state zero
+                if buttonPressed:
+                    buttonPressed = False
+                    state = 1
+                    print('Square wave pattern selected')
+                    start = time.ticks_ms()
+            elif state == 1:
+                #Run state one
+                brt = SquareWave((time.ticks_ms()-start)/1000)
+                t2ch1.pulse_width_percent(brt*100)
+                
+                if buttonPressed:
+                    buttonPressed = False
+                    start = time.ticks_ms()
+                    state = 2
+                    print('Sine wave pattern selected')
+            elif state == 2:
+                #Run state two
+                 brt = SineWave((time.ticks_ms()-start)/1000.0)
+                 t2ch1.pulse_width_percent(brt*100)
+                 
+                 if buttonPressed:
+                    buttonPressed = False
+                    start = time.ticks_ms()
+                    state = 3
+                    print('Sawtooth wave pattern selected')
+            elif state == 3:
+                #Run state 3
+                 brt = SawWave((time.ticks_ms()-start)/1000.0)
+                 t2ch1.pulse_width_percent(brt*100)
+                 
+                 if buttonPressed:
+                    buttonPressed = False
+                    state = 1
+                    print('Square wave pattern selected')
+            
+        except KeyboardInterrupt:
+            break
+
+    print('Program Terminating')
+        
