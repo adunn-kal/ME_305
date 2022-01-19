@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 '''!@file lab0x01.py
     @brief Lab0x01 Assignment.
-    @details Press a button to cycle through several different LED patterns.
+    @details Press a button to cycle through several different LED patterns.\
+        Video Link: https://youtu.be/rAyXS61tPXw
     @author Emma Jacobs
     @author Alexander Dunn
 '''
