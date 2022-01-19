@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''!@file lab0x01.py
-@brief Lab0x01 Assignment.
-@details Press a button to cycle through several different LED patterns.
-@author Emma Jacobs
-@author Alexander Dunn
+    @brief Lab0x01 Assignment.
+    @details Press a button to cycle through several different LED patterns.
+    @author Emma Jacobs
+    @author Alexander Dunn
 '''
+
 
 import pyb
 import time
@@ -20,12 +21,12 @@ t2ch1 = tim2.channel(1, pyb.Timer.PWM, pin=pinA5)
 def onButtonPressCallback(IRQ_src):
     '''!Sets buttonPressed flag to True when button is pressed.
     
-        @details (Updates the buttonPressed flag when the user presses the 
-                  button)
+        @details Updates the buttonPressed flag when the user presses the 
+                  button
 
-        @param IRQ_src (The interupt request.)
+        @param IRQ_src The interupt request.
 
-        @return (None.)
+        @return None.
     '''
     global buttonPressed
     buttonPressed = True
@@ -34,12 +35,12 @@ def onButtonPressCallback(IRQ_src):
 def SawWave(t):
     '''!Determines the appropriate brightness based on saw wave pattern.
     
-        @details (Takes a floating point number and returns it's decimal as a
-                  brightness value.)
+        @details Takes a floating point number and returns it's decimal as a
+                  brightness value.
 
-        @parm t (Time in seconds since pattern started.)
+        @parm t Time in seconds since pattern started.
 
-        @return (0.0-1.0 brightness.)
+        @return 0.0-1.0 brightness.
     '''
     return (t % 1)
 
@@ -47,12 +48,12 @@ def SawWave(t):
 def SquareWave(t):
     '''!Determines the appropriate brightness based on square wave pattern.
     
-        @details (Takes a floating point number and returns either 1 or 0
-                  depending on the decimal value of the number.)
+        @details Takes a floating point number and returns either 1 or 0
+                  depending on the decimal value of the number.
     
-        @param (time in seconds since pattern started.)
+        @param t Time in seconds since pattern started.
     
-        @return (On or off.)
+        @return On or off.
     '''
     if t % 1 < 0.5:
         return (1)
@@ -63,12 +64,12 @@ def SquareWave(t):
 def SineWave(t):
     '''!Determines the appropriate brightness based on sine wave pattern
         
-        @details (Takes a floating point number and uses a sine wave to return
-                  a brightness value between 0 and 1.)
+        @details Takes a floating point number and uses a sine wave to return
+                  a brightness value between 0 and 1.
 
-        @param t (Time in seconds since pattern started.)
+        @param t Time in seconds since pattern started.
 
-        @return (0.0-1.0 brightness.)
+        @return 0.0-1.0 brightness.
     '''
     return (math.sin((2*3.1415/10)*t)/2) + 0.5
 
