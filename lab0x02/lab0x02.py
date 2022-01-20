@@ -1,8 +1,9 @@
 '''!@file encoder.py
-    @brief          A driver for reading from Quadrature Encoders
-    @details
-    @author         First Last
-    @date           January 1, 1970
+    @brief          A driver for reading from Quadrature Encoders.
+    @details        The class that reports and records the position of the motor.
+    @author         Alexander Dunn
+    @author         Emma Jacobs
+    @date           January 20, 2022
  '''
 import pyb
  
@@ -11,13 +12,16 @@ pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
 class Encoder:
-      '''!@brief Interface with quadrature encoders
-          @details
+      '''!@brief    Interface with quadrature encoders.
+          @details  Intializes an encoder object based on user inputs for pins
+                    and timer.
+                    Contains methods to update the position and reset it.
       '''
       
       def __init__(self, chA_pin, chB_pin, timNum):
-          '''!@brief Constructs an encoder object
-              @details
+          '''!@brief    Constructs an encoder object.
+              @details  Intializes timer with channels and sets up initial
+                        position.
           '''
           print('Creating encoder object')
           # Set up timer and channels
@@ -30,8 +34,9 @@ class Encoder:
           self.dif = 0
 
       def update(self):
-          '''!@brief Updates encoder position and delta
-              @details
+          '''!@brief    Updates encoder position and delta.
+              @details  Computes a difference in ticks and adds that difference
+                        to the position.
           '''
           #print('Reading encoder count and updating position and delta values')
           # Sets counter to middle to avoid overflow issues in either direction
@@ -42,26 +47,24 @@ class Encoder:
           self.position += self.dif
 
       def get_position(self):
-          '''!@brief Returns encoder position
-              @details
-              @return The position of the encoder shaft
+          '''!@brief    Returns encoder position.
+              @return   The position of the encoder shaft.
           '''
           # Return the position
           return self.position
 
       def zero(self, position):
-          '''!@brief Resets the encoder position to zero
-              @details
+          '''!@brief Resets the encoder position to zero.
           '''
           # Reset the position to zero
           self.position = 0
           print('Setting position back to zero')
           
       def get_delta(self):
-          '''!@brief Returns encoder delta
-              @details
-              @return The change in position of the encoder shaft
-              between the two most recent updates
+          '''!@brief    Returns encoder delta.
+              @details  Uses the difference computed in the update() method.
+              @return   The change in position of the encoder shaft
+                        between the two most recent updates.
           '''
           # Return the difference
           return self.dif
@@ -74,5 +77,3 @@ if __name__ == '__main__':
     while True:
         encoder_1.update() #update encoder 1
         print(encoder_1.get_position())
-        
-        
