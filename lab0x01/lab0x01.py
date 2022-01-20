@@ -14,7 +14,10 @@
                         https://youtu.be/rAyXS61tPXw. 
                         
     @section sec_image FSM Transition Diagram
-                        https://imgur.com/1cZLLTZ
+                        https://imgur.com/4hYPwfv
+    
+    @section sec_code Copy of source code
+                        https://bitbucket.org/akdunn/me305_labs/src/master/lab0x01/lab0x01.py
 
     @author              Alexander Dunn
     @author Emma Jacobs
