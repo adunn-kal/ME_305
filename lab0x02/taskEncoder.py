@@ -6,74 +6,48 @@
     @date           January 20, 2022
  '''
 import pyb
+import encoder
+from time import ticks_us, ticks_add, ticks_diff
  
 pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
-
-class Encoder:
-      '''!@brief    Interface with quadrature encoders.
-          @details  Intializes an encoder object based on user inputs for pins
-                    and timer.
-                    Contains methods to update the position and reset it.
-      '''
-      
-      def __init__(self, chA_pin, chB_pin, timNum):
-          '''!@brief    Constructs an encoder object.
-              @details  Intializes timer with channels and sets up initial
-                        position.
-          '''
-          print('Creating encoder object')
-          # Set up timer and channels
-          self.timer = pyb.Timer(timNum, prescaler=0, period=65535)
-          self.ch1 = self.timer.channel(1, pyb.Timer.ENC_AB, pin=chA_pin)
-          self.ch2 = self.timer.channel(2, pyb.Timer.ENC_AB, pin=chB_pin)
-          
-          # Sets up initial position and differences
-          self.position = 0
-          self.dif = 0
-
-      def update(self):
-          '''!@brief    Updates encoder position and delta.
-              @details  Computes a difference in ticks and adds that difference
-                        to the position.
-          '''
-          #print('Reading encoder count and updating position and delta values')
-          # Sets counter to middle to avoid overflow issues in either direction
-          self.timer.counter(32767)
-          
-          # Measures the difference and updates the position
-          self.dif = self.timer.counter() - 32767
-          self.position += self.dif
-
-      def get_position(self):
-          '''!@brief    Returns encoder position.
-              @return   The position of the encoder shaft.
-          '''
-          # Return the position
-          return self.position
-
-      def zero(self, position):
-          '''!@brief Resets the encoder position to zero.
-          '''
-          # Reset the position to zero
-          self.position = 0
-          print('Setting position back to zero')
-          
-      def get_delta(self):
-          '''!@brief    Returns encoder delta.
-              @details  Uses the difference computed in the update() method.
-              @return   The change in position of the encoder shaft
-                        between the two most recent updates.
-          '''
-          # Return the difference
-          return self.dif
-     
-if __name__ == '__main__':
-    # Create an encoder object
-    encoder_1 = Encoder(pinB6, pinB7, 4) 
     
-    # Loop forever printing positions
+def taskEncoderFcn(taskName, period, zFlag, pVar, dVar):
+    
+    nextTime = ticks_add(ticks_us(), period)
+    global pinB6
+    global pinB7
+    myEncoder = encoder.Encoder(pinB6, pinB7, 4) 
+    state = 0
+    
     while True:
-        encoder_1.update() #update encoder 1
-        print(encoder_1.get_position())
+        
+        currentTime = ticks_us()
+        
+        if ticks_diff(currentTime,nextTime) >= 0:
+            
+            nextTime = ticks_add(ticks_us(), period)
+            myPos = myEncoder.position
+            myDif = myEncoder.dif
+            pVar.write(myPos)
+            dVar.write(myDif)
+            
+            if state == 0:
+                myEncoder.update()
+                
+                if zFlag.read():
+                    state = 1
+                
+            elif state == 1:
+                print(f"Encoder position was {myEncoder.position}")
+                myEncoder.zero(myEncoder.position)
+                print(f"Encoder position = {myEncoder.position}")
+                zFlag.write(False)
+                state = 0
+                print("Moving back to s0")
+                
+            yield state
+            
+        else:
+            yield None
