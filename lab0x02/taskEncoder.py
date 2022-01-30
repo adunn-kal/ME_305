@@ -13,7 +13,7 @@ pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
     
-def taskEncoderFcn(taskName, period, zFlag, pVar, dVar):
+def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gList, gTime):
     
     nextTime = ticks_add(ticks_us(), period)
     global pinB6
@@ -33,12 +33,18 @@ def taskEncoderFcn(taskName, period, zFlag, pVar, dVar):
             pVar.write(myPos)
             dVar.write(myDif)
             
+            # Update Position
             if state == 0:
                 myEncoder.update()
                 
+                # If gFlag is true, append reading to gList
+                if gFlag:
+                    gList.write([gTime, myEncoder.updateList()])
+                
                 if zFlag.read():
                     state = 1
-                
+            
+            # Zero position
             elif state == 1:
                 print(f"Encoder position was {myEncoder.position}")
                 myEncoder.zero(myEncoder.position)

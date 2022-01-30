@@ -32,6 +32,7 @@ class Encoder:
           self.position = 0
           self.dif = 0
           self.lastCount = 0
+          self.dataList = []
 
       def update(self):
           '''!@brief    Updates encoder position and delta.
@@ -47,15 +48,23 @@ class Encoder:
           if dif >= ((65535+1)/2):
               dif -= (65535+1)
               self.dif = dif
+              
           elif dif < -((65535+1)/2):
               dif += (65535+1)
               self.dif = dif
+              
           else:
               self.dif = dif
           
 
           self.position += self.dif
-
+          
+          
+      def updateList(self):
+          self.dataList.append(self.position)
+          return self.dataList
+      
+        
       def get_position(self):
           '''!@brief    Returns encoder position.
               @return   The position of the encoder shaft.

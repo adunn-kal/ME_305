@@ -15,9 +15,10 @@ def printHelp():
     print("|Command: s        end collection early|")
     print("+--------------------------------------+")
     
-def taskUserFcn(taskName, period, zFlag, pVar, dVar):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gList, gTime):
     
     nextTime = ticks_add(ticks_us(), period)
+    timerStart = 0
     
     state = 0
     
@@ -29,11 +30,14 @@ def taskUserFcn(taskName, period, zFlag, pVar, dVar):
             
             nextTime = ticks_add(ticks_us(), period)
             
+            # Innit
             if state == 0:
                 printHelp()
                 state = 1
-                
+            
+            # Await Command
             elif state == 1:
+                
                 if ser.any():
                     charIn = ser.read(1).decode()
                     print(f"You typed {charIn}")
@@ -55,24 +59,56 @@ def taskUserFcn(taskName, period, zFlag, pVar, dVar):
                     
                     elif charIn in {'g', 'G'}:
                         state = 5
-                        print('moving to state 3')
+                        print('moving to state 5')
                         
+                    elif charIn in {'s', 'S'}:
+                        state = 6
+                        print('moving to state 6')
+                        
+                # If you've collected data for 30 seconds
+                if gFlag.read():
+                    gTime.write(ticks_diff(currentTime,timerStart))
+                    if  gTime > 30/1000000:
+                        state = 6
+                        print('moving to state 6')
+            
+            # Zero Encoder
             elif state == 2:
                 state = 1
                 zFlag.write(True)
                 print("zFlag is True, moving back to s1")
-                
+            
+            # Print Position
             elif state == 3:
                 print("In s3")
                 print(f"Position = {pVar.read()}")
                 state = 1
             
+            # Print Delta
             elif state == 4:
                 print("In s4")
                 print(f"Delta = {dVar.read()}")
                 state = 1
-                
+            
+            # Collect Data
             elif state == 5:
+                # If not already recording data
+                if not gFlag.read():
+                    timerStart = ticks_us()
+                    
+                gFlag.write(True)
+                state = 1
+                
+            # End collection
+            elif state == 6:
+                # Print full list with comma sep
+                myList = gList.read()
+                for reading in myList:
+                    print(f"{myList[reading][0]},{myList[reading][1]}")
+                
+                # Reset list and unflag gFlag
+                gList.write([])
+                gFlag.write(False)
                 state = 1
             
             yield state
