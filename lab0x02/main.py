@@ -1,13 +1,10 @@
-'''!@file main.py
-    @brief Lab0x02 main file.
+'''!@file    main.py
+    @brief   Lab0x02 main file.
     @details Cycle between a user input task and an encoder task.
-             Tracks position of motor and allows for user commands.
-             
-    @author Emma Jacobs
-    
-    @author Alexander Dunn
-    
-    @date                January 20, 2022
+             Tracks position of motor and allows for user commands.  
+    @author  Emma Jacobs
+    @author  Alexander Dunn
+    @date    January 20, 2022
 '''
 
 import taskEncoder
@@ -45,10 +42,20 @@ dVar = shares.Share()
 
 if __name__ == "__main__":
     # Instantiate task objects
-    userTask = taskUser.taskUserFcn(
-        'Task User', 10000, zFlag, gFlag, pVar, dVar, gTime)
-    encoderTask = taskEncoder.taskEncoderFcn(
-        'Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime)
+    
+    ## @brief    The user task.
+    #  @details  Includes name, period, and all neccesary shared variables.
+    #
+    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime)
+    
+    ## @brief    The encoder task.
+    #  @details  Includes name, period, and all neccesary shared variables.
+    #
+    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime)
+    
+    ## @brief    A list of tasks.
+    #  @details  Includes all tasks in the order they should be performed.
+    #
     taskList = [userTask, encoderTask]
 
     while True:

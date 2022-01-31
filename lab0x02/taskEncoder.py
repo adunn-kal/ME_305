@@ -1,9 +1,9 @@
-'''!@file encoder.py
-    @brief          A driver for reading from Quadrature Encoders.
-    @details        The class that reports and records the position of the motor.
-    @author         Alexander Dunn
-    @author         Emma Jacobs
-    @date           January 20, 2022
+'''!@file    taskEncoder.py
+    @brief   Lab0x02 Encoder Task.
+    @details The class that reports and records the position of the motor.
+    @author  Alexander Dunn
+    @author  Emma Jacobs
+    @date    January 20, 2022
  '''
 import pyb
 import encoder

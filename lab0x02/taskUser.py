@@ -1,12 +1,9 @@
-'''!@file taskUser.py
-    @brief Lab0x02 User Task.
+'''!@file    taskUser.py
+    @brief   Lab0x02 User Task.
     @details Allows the user to input commands to view information regarding the motor.
-             
-    @author Emma Jacobs
-    
-    @author Alexander Dunn
-    
-    @date                January 20, 2022
+    @author  Emma Jacobs
+    @author  Alexander Dunn
+    @date    January 20, 2022
 '''
 
 import pyb
