@@ -3,7 +3,7 @@
     @details The class that reports and records the position of the motor.
     @author  Alexander Dunn
     @author  Emma Jacobs
-    @date    January 20, 2022
+    @date    February 03, 2022
  '''
 import pyb
  

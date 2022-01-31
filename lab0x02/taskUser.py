@@ -3,7 +3,7 @@
     @details Allows the user to input commands to view information regarding the motor.
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    January 20, 2022
+    @date    February 03, 2022
 '''
 
 import pyb

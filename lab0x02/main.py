@@ -4,7 +4,7 @@
              Tracks position of motor and allows for user commands.  
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    January 20, 2022
+    @date    February 03, 2022
 '''
 
 import taskEncoder
