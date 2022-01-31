@@ -36,22 +36,25 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gList, gTime):
             # Update Position
             if state == 0:
                 myEncoder.update()
-                
+                """
                 # If gFlag is true, append reading to gList
                 if gFlag:
-                    gList.write([gTime, myEncoder.updateList()])
+                    myList = gList.read()
+                    myList.append([gTime.read(),myEncoder.position])
+                    gList.write(myList)
+                """
                 
                 if zFlag.read():
                     state = 1
             
             # Zero position
             elif state == 1:
-                print(f"Encoder position was {myEncoder.position}")
+                #print(f"Encoder position was {myEncoder.position}")
                 myEncoder.zero(myEncoder.position)
-                print(f"Encoder position = {myEncoder.position}")
+                #print(f"Encoder position = {myEncoder.position}")
                 zFlag.write(False)
                 state = 0
-                print("Moving back to s0")
+                #print("Moving back to s0")
                 
             yield state
             

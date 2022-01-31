@@ -4,7 +4,7 @@ import shares
 zFlag = shares.Share(False)
 gFlag = shares.Share(False)
 
-gList = shares.Share()
+gList = shares.Share([])
 gTime = shares.Share()
 pVar = shares.Share()
 dVar = shares.Share()

@@ -77,7 +77,7 @@ class Encoder:
           '''
           # Reset the position to zero
           self.position = 0
-          print('Setting position back to zero')
+          #print('Setting position back to zero')
           
       def get_delta(self):
           '''!@brief    Returns encoder delta.
