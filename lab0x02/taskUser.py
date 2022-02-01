@@ -35,7 +35,7 @@ def printHelp():
     print("+--------------------------------------+")
 
 
-def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -121,11 +121,13 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 # If you're collecting data, print it
                 if gFlag.read():
                     # Update gTime in mS
-                    gTime.write(ticks_diff(ticks_us(), timerStart*1000)/1000.0)
+                    gTime.write(ticks_diff(ticks_us(), timerStart)/1000.0)
 
+                    """
                     # Print time and position values
                     if state != 6:
                         print(f"{gTime.read()},{pVar.read()}")
+                    """
 
                     # If the timer has expired
                     if gTime.read() > 30*1000:
@@ -151,13 +153,15 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 # If not already recording data
                 if not gFlag.read():
                     # Create start timer in mS
-                    timerStart = ticks_us()/1000.0
+                    timerStart = ticks_us()
 
                 gFlag.write(True)
                 state = 1
 
             # End collection
             elif state == 6:
+                # Reset index
+                index.write(0)
                 
                 # Print full list with comma sep
                 posArray = gArray.read()
@@ -166,14 +170,18 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 for (time, pos) in zip(timeArray, posArray):
                     # If it's a number greater than zero
                     if isinstance(pos, int):
-                        if pos > 0:
+                        if time > 0.01:
                             print(f"{time},{pos}")
-                    else:
-                        print("Not an integer!")
+                            
+                # Reset arrays and unflag gFlag
+                i = 0
+                while i < 3001:
+                    posArray[i] = 0
+                    timeArray[i] = 0
+                    i += 1
                 
-                # Reset list and unflag gFlag
-                gArray.write(array.array('H', 3001*[0]))
-                tArray.write(array.array('f', 3001*[0]))
+                gArray.write(posArray)
+                tArray.write(timeArray)
                 
                 gFlag.write(False)
                 state = 1

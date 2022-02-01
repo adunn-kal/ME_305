@@ -14,7 +14,7 @@ pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
-def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray):
+def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index):
 
     nextTime = ticks_add(ticks_us(), period)
     global pinB6
@@ -39,14 +39,17 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
                 myEncoder.update()
 
                 # If gFlag is true, add readings to arrays
-                if gFlag:
+                if gFlag.read():
                     # Get old arrays
                     posArray = gArray.read()
                     timeArray = tArray.read()
                     
                     # Add new info to arrays
-                    posArray[int(gTime.read())] = myEncoder.position()
-                    timeArray[int(gTime.read())] = gTime.read()
+                    if isinstance(gTime.read(), float):
+                        posArray[index.read()] = myEncoder.position
+                        timeArray[index.read()] = int(gTime.read())
+                        
+                        index.write(index.read() + 1)
                     
                     # Update shared arrays for user task
                     gArray.write(posArray)

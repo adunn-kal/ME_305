@@ -43,12 +43,16 @@ dVar = shares.Share()
 ## @brief    The shared position array.
 #  @details  Measured in ticks, can be positive or negative.
 #
-gArray = shares.Share(array.array('H', 3001*[0]))
+#gArray = shares.Share(array.array('H', []))
+gArray = shares.Share(array.array('l', 3001*[0]))
 
 ## @brief    The shared time array.
 #  @details  In units of mS.
 #
-tArray = shares.Share(array.array('f', 3001*[0]))
+#tArray = shares.Share(array.array('f', []))
+tArray = shares.Share(array.array('H', 3001*[0]))
+
+index = shares.Share(0)
 
 
 if __name__ == "__main__":
@@ -57,12 +61,12 @@ if __name__ == "__main__":
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray)
+    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index)
     
     ## @brief    The encoder task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray)
+    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index)
     
     ## @brief    A list of tasks.
     #  @details  Includes all tasks in the order they should be performed.
