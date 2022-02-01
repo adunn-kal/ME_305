@@ -8,6 +8,7 @@
 
 import pyb
 from time import ticks_us, ticks_add, ticks_diff
+import array
 
 ## @brief  The serial object.
 # @details Allows characters to be read from user inputs without blocking code.
@@ -34,7 +35,7 @@ def printHelp():
     print("+--------------------------------------+")
 
 
-def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -53,6 +54,10 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
         @param dVar The shared variable holding encoder delta information.
 
         @param gTime The shared variable holding data collection timing information.
+        
+        @param gArray The shared variable holding collected data.
+        
+        @param gTime The shared variable holding collected times.
 
         @return None.
     '''
@@ -115,15 +120,15 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
 
                 # If you're collecting data, print it
                 if gFlag.read():
-                    # Update gTime
-                    gTime.write(ticks_diff(ticks_us(), timerStart))
+                    # Update gTime in mS
+                    gTime.write(ticks_diff(ticks_us(), timerStart*1000)/1000.0)
 
                     # Print time and position values
                     if state != 6:
                         print(f"{gTime.read()},{pVar.read()}")
 
                     # If the timer has expired
-                    if gTime.read() > 30*1000000:
+                    if gTime.read() > 30*1000:
                         state = 6
 
             # Zero Encoder
@@ -145,13 +150,31 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
             elif state == 5:
                 # If not already recording data
                 if not gFlag.read():
-                    timerStart = ticks_us()
+                    # Create start timer in mS
+                    timerStart = ticks_us()/1000.0
 
                 gFlag.write(True)
                 state = 1
 
             # End collection
             elif state == 6:
+                
+                # Print full list with comma sep
+                posArray = gArray.read()
+                timeArray = tArray.read()
+
+                for (time, pos) in zip(timeArray, posArray):
+                    # If it's a number greater than zero
+                    if isinstance(pos, int):
+                        if pos > 0:
+                            print(f"{time},{pos}")
+                    else:
+                        print("Not an integer!")
+                
+                # Reset list and unflag gFlag
+                gArray.write(array.array('H', 3001*[0]))
+                tArray.write(array.array('f', 3001*[0]))
+                
                 gFlag.write(False)
                 state = 1
 

@@ -8,12 +8,13 @@
 import pyb
 import encoder
 from time import ticks_us, ticks_add, ticks_diff
+import array
 
 pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
-def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
+def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray):
 
     nextTime = ticks_add(ticks_us(), period)
     global pinB6
@@ -36,6 +37,20 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime):
             # Update Position
             if state == 0:
                 myEncoder.update()
+
+                # If gFlag is true, add readings to arrays
+                if gFlag:
+                    # Get old arrays
+                    posArray = gArray.read()
+                    timeArray = tArray.read()
+                    
+                    # Add new info to arrays
+                    posArray[int(gTime.read())] = myEncoder.position()
+                    timeArray[int(gTime.read())] = gTime.read()
+                    
+                    # Update shared arrays for user task
+                    gArray.write(posArray)
+                    tArray.write(timeArray)
 
                 if zFlag.read():
                     state = 1

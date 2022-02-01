@@ -3,7 +3,6 @@
     @details    Implements a very simple interface for sharing data between
                 multiple tasks.
 '''
-
 class Share:
     '''!@brief      A standard shared variable.
         @details    Values can be accessed with read() or changed with write()

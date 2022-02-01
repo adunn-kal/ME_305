@@ -1,7 +1,7 @@
 '''!@file    main.py
     @brief   Lab0x02 main file.
     @details Cycle between a user input task and an encoder task.
-             Tracks position of motor and allows for user commands.  
+             Tracks position of motor and allows for user commands.
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    February 03, 2022
@@ -10,6 +10,7 @@
 import taskEncoder
 import taskUser
 import shares
+import array
 
 ## @brief    A flag for the zero input.
 #  @details  True when the user types "Z".
@@ -39,6 +40,16 @@ pVar = shares.Share()
 #
 dVar = shares.Share()
 
+## @brief    The shared position array.
+#  @details  Measured in ticks, can be positive or negative.
+#
+gArray = shares.Share(array.array('H', 3001*[0]))
+
+## @brief    The shared time array.
+#  @details  In units of mS.
+#
+tArray = shares.Share(array.array('f', 3001*[0]))
+
 
 if __name__ == "__main__":
     # Instantiate task objects
@@ -46,12 +57,12 @@ if __name__ == "__main__":
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime)
+    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray)
     
     ## @brief    The encoder task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime)
+    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray)
     
     ## @brief    A list of tasks.
     #  @details  Includes all tasks in the order they should be performed.
