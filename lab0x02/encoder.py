@@ -23,7 +23,7 @@ class Encoder:
             @details  Intializes timer with channels and sets up initial
                       position.
         '''
-        print('Creating encoder object')
+        # print('Creating encoder object')
         # Set up timer and channels
         self.timer = pyb.Timer(timNum, prescaler=0, period=65535)
         self.ch1 = self.timer.channel(1, pyb.Timer.ENC_AB, pin=chA_pin)

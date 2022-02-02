@@ -8,7 +8,6 @@
 
 import pyb
 from time import ticks_us, ticks_add, ticks_diff
-import array
 
 ## @brief  The serial object.
 # @details Allows characters to be read from user inputs without blocking code.

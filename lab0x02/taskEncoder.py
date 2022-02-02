@@ -8,22 +8,46 @@
 import pyb
 import encoder
 from time import ticks_us, ticks_add, ticks_diff
-import array
 
+## @brief pin B6 object
+#  
 pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
+
+## @brief pin B7 object
+#
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
 def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index):
+    '''! Calls the Encoder class to perform functions.
 
+        @details Uses the Encoder methods and attributes to return and perform
+        actions based on shared variables.
+
+        @return zFlag, pVar, dVar.
+    '''
+    ## @brief  The next time the task should run.
+    #  @details In uS.
+    #
     nextTime = ticks_add(ticks_us(), period)
     global pinB6
     global pinB7
+    
+    ## @brief The encoder object being used.
+    #  @details contains specific attributes and methods.
+    #
     myEncoder = encoder.Encoder(pinB6, pinB7, 4)
+    
+    ## @brief The state that the program is in.
+    #  @details Begins at 0 and moves to new states based on the values of 
+    #   shared variables
+    #
     state = 0
 
     while True:
-
+        ## @brief  The current time.
+        #  @details In uS.
+        #
         currentTime = ticks_us()
 
         if ticks_diff(currentTime, nextTime) >= 0:
@@ -41,7 +65,17 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
                 # If gFlag is true, add readings to arrays
                 if gFlag.read():
                     # Get old arrays
+                    
+                    ## @brief The position array.
+                    #  @details In ms. Gets the old array values and is then updated with
+                    #   new ones.
+                    #
                     posArray = gArray.read()
+                    
+                    ## @brief The time array.
+                    #  @details In ms. Gets the old array values and is then updated with
+                    #   new ones.
+                    #
                     timeArray = tArray.read()
                     
                     # Add new info to arrays
