@@ -5,6 +5,8 @@
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    February 03, 2022
+    
+    @image html taskdiagram.jpg
 '''
 
 import taskEncoder
