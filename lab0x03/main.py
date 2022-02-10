@@ -33,10 +33,13 @@
     
 '''
 
+from pyb import Pin
 import taskEncoder
 import taskUser
 import shares
 import array
+from motor import Motor
+from drv8847 import DRV8847
 
 ## @brief    A flag for the zero input.
 #  @details  True when the user types "Z".
@@ -82,12 +85,19 @@ index = shares.Share(0)
 
 
 if __name__ == "__main__":
+    # Instantiate driver object
+    myDriver = DRV8847(Pin.cpu.A15, Pin.cpu.B2, 3)
+    motor_1 = myDriver.makeMotor(Pin.cpu.B4, Pin.cpu.B5, 1, 2)
+    motor_2 = myDriver.makeMotor(Pin.cpu.B0, Pin.cpu.B1, 3, 4)
+    
+    myDriver.enable()
+    
     # Instantiate task objects
     
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index)
+    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, myDriver, motor_1, motor_2)
     
     ## @brief    The encoder task.
     #  @details  Includes name, period, and all neccesary shared variables.

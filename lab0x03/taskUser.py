@@ -13,6 +13,56 @@ from time import ticks_us, ticks_add, ticks_diff
 # @details Allows characters to be read from user inputs without blocking code.
 #
 ser = pyb.USB_VCP()
+bufferString = ''
+
+def getDuty(motor):
+    global bufferString
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a digit
+        if myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a minus
+        elif myChar == '-':
+            # Is it the first character
+            if len(bufferString) == 0:
+                # Append it to the string
+                bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's a character
+        if myChar in {'\r', '\n'}:
+            myDuty = int(bufferString)
+            
+            if myDuty > 100:
+                myDuty = 100
+            elif myDuty < -100:
+                myDuty = -100
+                
+            print(f'Setting duty cycle to {myDuty}')
+            motor.set_duty(myDuty)
+            state = 1
+            return state
+        
+        else:
+            state = 7
+            return state
+        
+    else:
+        state = 7
+        return state
 
 
 def printHelp():
@@ -32,9 +82,9 @@ def printHelp():
     print("|Command: g        collect encoder data|")
     print("|Command: s        end collection early|")
     print("+--------------------------------------+")
+    
 
-
-def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, driver, motor_1, motor_2):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -73,6 +123,9 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
     ## @brief  The current state.
     #
     state = 0
+    
+    global bufferString
+    bufferString = ''
 
     while True:
         ## @brief  The current time.
@@ -116,6 +169,18 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
 
                     elif charIn in {'s', 'S'}:
                         state = 6
+                        
+                    elif charIn in {'m', 'M'}:
+                        if charIn == 'm':
+                            motor = motor_1
+                        else:
+                            motor = motor_2
+                            
+                        bufferString = ''
+                        state = 7
+                    
+                    elif charIn in {'c', 'C'}:
+                        state = 8
 
                 # If you're collecting data, print it
                 if gFlag.read():
@@ -184,6 +249,20 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 
                 gFlag.write(False)
                 state = 1
+                
+            # set duty
+            elif state == 7:
+                state = getDuty(motor)
+
+                        
+            # Reset flag
+            elif state == 8:
+                print("reseting")
+                motor.set_duty(0)
+                driver.enable()
+                print("Fault reset")
+                state = 1
+                        
 
             yield state
 
