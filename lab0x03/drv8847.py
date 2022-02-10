@@ -29,10 +29,11 @@ if __name__ == '__main__':
         try:
             myDriver = DRV8847(Pin.cpu.A15, Pin.cpu.B2, 3)
             
-            #faultInt = ExtInt(Pin.cpu.B2, mode=ExtInt.IRQ_RISING, pull=Pin.PULL_NONE, callback=myDriver.fault_cb)
-            
             motor_1 = myDriver.makeMotor(Pin.cpu.B4, Pin.cpu.B5, 1, 2)
             motor_2 = myDriver.makeMotor(Pin.cpu.B0, Pin.cpu.B1, 3, 4)
+            
+            faultInt_1 = ExtInt(Pin.cpu.B2, mode=ExtInt.IRQ_RISING, pull=Pin.PULL_NONE, callback=motor_1.fault_cb)
+            faultInt_2 = ExtInt(Pin.cpu.B2, mode=ExtInt.IRQ_RISING, pull=Pin.PULL_NONE, callback=motor_2.fault_cb)
 
             myDriver.enable()
             
