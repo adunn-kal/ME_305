@@ -14,6 +14,10 @@ from time import ticks_us, ticks_add, ticks_diff
 #
 ser = pyb.USB_VCP()
 bufferString = ''
+testFlag = False
+testTimer = 0
+testList = []
+speedList = []
 
 def getDuty(motor):
     global bufferString
@@ -42,7 +46,7 @@ def getDuty(motor):
         # Print current string
         print(bufferString)
         
-        # If it's a character
+        # If it's an enter
         if myChar in {'\r', '\n'}:
             myDuty = int(bufferString)
             
@@ -51,9 +55,11 @@ def getDuty(motor):
             elif myDuty < -100:
                 myDuty = -100
                 
-            print(f'Setting duty cycle to {myDuty}')
             motor.set_duty(myDuty)
+            bufferString = ''
             state = 1
+            global testTimer
+            testTimer = ticks_us()
             return state
         
         else:
@@ -79,7 +85,12 @@ def printHelp():
     print("|Command: z               reset encoder|")
     print("|Command: p      print encoder position|")
     print("|Command: d         print encoder delta|")
+    print("|Command: v      print encoder velocity|")
+    print("|Command: m      set motor 1 duty cycle|")
+    print("|Command: M      set motor 2 duty cycle|")
+    print("|Command: c       clear fault condition|")
     print("|Command: g        collect encoder data|")
+    print("|Command: t              run speed test|")
     print("|Command: s        end collection early|")
     print("+--------------------------------------+")
     
@@ -144,6 +155,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
 
             # Await Command
             elif state == 1:
+                global testFlag
 
                 if ser.any():
                     ## @brief  The character typed by the user.
@@ -181,6 +193,30 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     
                     elif charIn in {'c', 'C'}:
                         state = 8
+                        
+                    elif charIn in {'v', 'V'}:
+                        state = 9
+                        
+                    elif charIn in {'t', 'T'}:
+                        global testTimer
+                        global testList
+                        global speedList
+                        
+                        # Reset testing parameters
+                        testList = []
+                        speedList = []
+                        #testTimer = ticks_us()
+                        testFlag = True
+                        
+                        #state = 10
+                        print("Entering test, press 's' at any time to exit.")
+                        print("Select a duty cycle to begin")
+                        motor = motor_1
+                        state = 7
+
+                # If no additional data was sent, and you're running a test, keep testing
+                elif testFlag is True:
+                    state = 10
 
                 # If you're collecting data, print it
                 if gFlag.read():
@@ -224,33 +260,48 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
 
             # End collection
             elif state == 6:
-                # Reset index
-                index.write(0)
+                global testFlag
+                global speedList
+                # If you were running a test
+                if testFlag is True:
+                    global testFlag
+                    testFlag = False
+                    print("Test concluded")
+                    print("Duty Cylce [%],Speed [rpm]")
+                    for duty in speedList:
+                        print(f"{duty[0]},{duty[1]}")
+                    
                 
-                # Print full list with comma sep
-                posArray = gArray.read()
-                timeArray = tArray.read()
-
-                for (time, pos) in zip(timeArray, posArray):
-                    # If it's a number greater than zero
-                    if isinstance(pos, int):
-                        if time > 0.01:
-                            print(f"{time},{pos}")
-                            
-                # Reset arrays and unflag gFlag
-                i = 0
-                while i < 3001:
-                    posArray[i] = 0
-                    timeArray[i] = 0
-                    i += 1
-                
-                gArray.write(posArray)
-                tArray.write(timeArray)
-                
-                gFlag.write(False)
+                # If you were collecting data
+                else:
+                    # Reset index
+                    index.write(0)
+                    
+                    # Print full list with comma sep
+                    posArray = gArray.read()
+                    timeArray = tArray.read()
+    
+                    for (time, pos) in zip(timeArray, posArray):
+                        # If it's a number greater than zero
+                        if isinstance(pos, int):
+                            if time > 0.01:
+                                print(f"{time},{pos}")
+                                
+                    # Reset arrays and unflag gFlag
+                    i = 0
+                    while i < 3001:
+                        posArray[i] = 0
+                        timeArray[i] = 0
+                        i += 1
+                    
+                    gArray.write(posArray)
+                    tArray.write(timeArray)
+                    
+                    gFlag.write(False)
+                    
                 state = 1
                 
-            # set duty
+            # Set duty
             elif state == 7:
                 state = getDuty(motor)
 
@@ -262,9 +313,46 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 driver.enable()
                 print("Fault reset")
                 state = 1
+                
+                
+            # Print velocity
+            elif state == 9:
+                # Velocity = (delta [ticks] / period [s]) / CPR [ticks/rev]
+                print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                state = 1
+                
+            
+            # Run velocity test
+            elif state == 10:
+                global testTimer
+                global testList
+                global speedList
+                
+                # Run Test
+                if ticks_diff(ticks_us(), testTimer) < 2000000:
+                    velocity = 60*(dVar.read()/(-period/1000000))/4000
+                    testList.append(velocity)
+                    print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                    state = 1
+                
+                # Continue test for 2 seconds between each run
+                if ticks_diff(ticks_us(), testTimer) > 2000000:
+                    # Take average and reset list
+                    averageSpeed = 0
+                    for speed in testList:
+                        averageSpeed += speed
+                    averageSpeed /= len(testList)
+                    testList = []
+                    
+                    speedList.append([motor_1.duty, averageSpeed])
+                    print("Get new duty cycle")
+                    motor = motor_1
+                    state = 7
+                    
                         
 
             yield state
 
         else:
             yield None
+

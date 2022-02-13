@@ -5,12 +5,12 @@ class Motor:
     def __init__(self, PWM_time, IN1_pin, IN2_pin, ch1, ch2):
         self.forwardPin = IN1_pin
         self.backPin = IN2_pin
-        
-        
+        self.duty = 0
         self.PWMforward = PWM_time.channel(ch1, Timer.PWM_INVERTED, pin=self.forwardPin)
         self.PWMback = PWM_time.channel(ch2, Timer.PWM_INVERTED, pin=self.backPin)
                 
     def set_duty(self, duty):
+        self.duty = duty
         
         if duty > 0:
             self.PWMforward.pulse_width_percent(0)
