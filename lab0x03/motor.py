@@ -28,8 +28,8 @@ if __name__ == '__main__':
         try:
             PWM_time = Timer(3, freq = 20000)
             
-         #   IN1_pin = Pin(Pin.cpu.B4, mode=Pin.OUT_PP)
-         #  IN2_pin = Pin(Pin.cpu.B5, mode=Pin.OUT_PP)
+            #IN1_pin = Pin(Pin.cpu.B4, mode=Pin.OUT_PP)
+            #IN2_pin = Pin(Pin.cpu.B5, mode=Pin.OUT_PP)
             
             motor_1 = Motor(PWM_time, Pin.cpu.B4, Pin.cpu.B5, 1, 2)
             motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
