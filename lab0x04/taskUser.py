@@ -73,6 +73,94 @@ def getDuty(motor):
     else:
         state = 7
         return state
+    
+def getGain(controller):
+    global bufferString
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a decimal in the first place
+        if myChar == '.':
+            bufferString += myChar
+        
+        # If it's a digit
+        elif myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's an enter
+        if myChar in {'\r', '\n'}:
+            myKp = float(bufferString)
+            print(f"My gain = {myKp}")
+            controller.set_Kp(myKp)
+            bufferString = ''
+            print("Choose motor speed [RPM]")
+            state = 13
+            # global testTimer
+            # testTimer = ticks_us()
+            return state
+        else:
+            state = 12
+            return state
+        
+    else:
+        state = 12
+        return state
+    
+def getSpeed(controller):
+    global bufferString
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a digit
+        if myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a minus
+        elif myChar == '-':
+            # Is it the first character
+            if len(bufferString) == 0:
+                # Append it to the string
+                bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's an enter
+        if myChar in {'\r', '\n'}:
+            mySpeed = int(bufferString)
+            print(f"Target speed = {mySpeed}")
+            controller.ref = mySpeed
+            bufferString = ''
+            state = 1
+            # global testTimer
+            # testTimer = ticks_us()
+            return state
+        else:
+            state = 13
+            return state
+        
+    else:
+        state = 13
+        return state
 
 
 def printHelp():
@@ -220,7 +308,6 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         state = 7
                         
                     elif charIn in {'w', 'W'}:
-                        
                         global cFlag
                         
                        
@@ -228,23 +315,32 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                             cFlag = False
                         else:
                             cFlag = True  
-                            state = 11
-                            print('state 11')
+                            state = 12
+                            print('Choose a gain value')
+                            
+                    elif charIn in {'k','K'}:
+                        print("Choose a new gain")
+                        state = 12
+                        
+                    elif charIn in {'y', 'Y'}:
+                        print("Choose a new motor speed [RPM]")
+                        state = 13
                             
                     elif charIn in {'r', 'R'}:
                         pass
                         
-                    ''' elif charIn in {'y', 'Y'}:
-                        pass
                     
-                    elif charIn in {'k','K'}:
-                        pass
-                    '''
                     
 
+                # If you were controlling, keep controlling
+                elif cFlag is True:
+                    state = 11
+                    
                 # If no additional data was sent, and you're running a test, keep testing
                 elif testFlag is True:
                     state = 10
+                
+                
 
                 # If you're collecting data, print it
                 if gFlag.read():
@@ -376,17 +472,24 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     print("Get new duty cycle")
                     motor = motor_1
                     state = 7
-                    
+                  
+            # Run Controller
             elif state == 11:                
-                ref = 1500
                 velocity = 60*(dVar.read()/(-period/1000000))/4000
-                gain = 0.1
-                
-                controller.set_Kp(gain)
-                duty = controller.run(ref, velocity)
+
+                duty = controller.run(velocity)
                 motor_1.set_duty(duty)
+
+                state = 1
+
+            # Update Controller Gain
+            elif state == 12:
+                state = getGain(controller)
                 
-                print(velocity)
+            # Update COntroller Speed
+            elif state == 13:
+                state = getSpeed(controller)
+
 
             yield state
 

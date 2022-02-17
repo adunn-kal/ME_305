@@ -13,21 +13,15 @@ class ClosedLoop:
         self.max = 100
         self.min = -100
         self.duty = 0
+        self.ref = 0
         
-    def run(self, ref, speed):
-        self.ref = ref
+    def run(self, speed):
         self.speed = speed
-        step = 25
         
         error = self.ref - self.speed
         
         duty = self.gain*(error)
-        
-        '''if (duty - self.duty) > step:
-            duty = self.duty + step
-        elif (self.duty - duty) > 25:
-            duty = self.duty - 25
-        '''
+
         
         if duty > self.max:
             duty = self.max
@@ -35,9 +29,6 @@ class ClosedLoop:
             duty = self.min
             
         self.duty = duty
-            
-        print(error)
-        print(duty)
         
         return duty
     
