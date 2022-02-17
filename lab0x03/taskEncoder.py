@@ -23,6 +23,12 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
 
         @details Uses the Encoder methods and attributes to return and perform
         actions based on shared variables.
+        
+        @param zFlag The shared variable associated with the zero command.
+
+        @param pVar The shared variable holding position information.
+
+        @param dVar The shared variable holding encoder delta information.
 
         @return zFlag, pVar, dVar.
     '''

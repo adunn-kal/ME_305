@@ -1,27 +1,9 @@
 '''!@file lab0x01.py
     @brief Lab0x01 Assignment.
-    @details Press a button to cycle through several different LED patterns.\
-        Video Link: https://youtu.be/rAyXS61tPXw
+    @details /ref Lab0x01
     @author Emma Jacobs
     @author Alexander Dunn
     
-    @mainpage
-
-    @section sec_lab     Lab0x01
-                        This is the first lab
-
-    @section sec_url     Video URL
-                        https://youtu.be/rAyXS61tPXw. 
-                        
-    @section sec_image FSM Transition Diagram
-                        https://imgur.com/4hYPwfv
-    
-    @section sec_code Copy of source code
-                        https://bitbucket.org/akdunn/me305_labs/src/master/lab0x01/lab0x01.py
-
-    @author              Alexander Dunn
-    @author Emma Jacobs
-
     @date                January 20, 2022
 '''
 import pyb

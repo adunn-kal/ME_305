@@ -1,12 +1,21 @@
+'''!@file       drv8847.py
+    @brief      Driver for the motor class.
+'''
 from motor import Motor
 from pyb import Pin, Timer, ExtInt
 import time
 
 
 class DRV8847:
-    '''!
+    '''!@brief      Driver for motor objects.
+        @details    Can create multiple motor objects and handles fault conditions.
     '''
     def __init__(self, sleepPin, faultPin, timer):
+        '''!@brief      Initialize a motor.
+            @param      sleepPin Turn the enable pin off so motor cannot spin.
+            @param      faultPin If a fault is tripped, disables the motor.
+            @param      timer frequency of motor.
+        '''
         self.timer = Timer(timer, freq = 20000)
         self.sleepPin = Pin(sleepPin, mode=Pin.OUT_PP)
         self.faultPin = faultPin
@@ -14,19 +23,32 @@ class DRV8847:
         self.faultInt = ExtInt(self.faultPin, mode=ExtInt.IRQ_FALLING, pull=Pin.PULL_UP, callback=self.fault_cb)
         
     def enable(self):
+        '''!@brief      Disable the fault, set sleepPin to high.
+        '''
         self.faultInt.disable()
         self.sleepPin.high()
         time.sleep_us(50)
         self.faultInt.enable()
     
     def disable(self):
+        '''!@brief      Set sleepPin to low.
+        '''
         self.sleepPin.low()
         
     def fault_cb(self, IRQ_src):
+        '''!@brief      Disables motors if fault is triggered.
+            @param      IRQ_src The interuppt parameter that indicates a fault.
+        '''
         self.disable()
         print("triggered fault")
     
     def makeMotor(self, IN1_pin, IN2_pin, ch1, ch2):
+        '''!@brief      Creates a motor object.
+            @param      IN1_pin moves the motor forward.
+            @param      IN2_pin moves the motor backwards.
+            @param      ch1 channel 1 for forward movement.
+            @param      Ch2 channel 2 for backward movement.
+        '''
         motor = Motor(self.timer, IN1_pin, IN2_pin, ch1, ch2)
         return motor
 

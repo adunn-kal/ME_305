@@ -1,30 +1,11 @@
 '''!@file    main.py
-    @brief   Lab0x02 main file.
+    @brief   Lab0x03 main file.
     @details Create a user interface to use an encoder and return 30 seconds of 
     data from the motor.
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    February 03, 2022
+    @date    February 16, 2022
     
-    @mainpage
-
-    @section sec_lab     Lab0x02
-                        This is the second lab
-
-    @section sec_image1     Task Diagram
-                        https://imgur.com/gallery/GwkeQb2
-                        
-    @section sec_image2 FSM Transition Diagram for taskEncoder
-                        https://imgur.com/gallery/cBysvF6
-    
-    @section sec_image3 FSM Transition Diagram for taskUser
-                        https://imgur.com/gallery/M3q8Fgz
-    
-    @section sec_code Copy of source code files
-                        https://bitbucket.org/akdunn/me305_labs/src/master/lab0x02/
-                        
-    @section sec_plot Encoder plot
-                        https://imgur.com/gallery/auNYCH8
 
     @author              Alexander Dunn
     @author Emma Jacobs
