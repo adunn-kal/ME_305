@@ -8,6 +8,7 @@
 
 import pyb
 from time import ticks_us, ticks_add, ticks_diff
+import closedLoop
 
 ## @brief  The serial object.
 # @details Allows characters to be read from user inputs without blocking code.
@@ -15,9 +16,12 @@ from time import ticks_us, ticks_add, ticks_diff
 ser = pyb.USB_VCP()
 bufferString = ''
 testFlag = False
+cFlag = False
 testTimer = 0
 testList = []
 speedList = []
+
+controller = closedLoop.ClosedLoop()
 
 def getDuty(motor):
     global bufferString
@@ -196,7 +200,8 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         
                     elif charIn in {'v', 'V'}:
                         state = 9
-                        
+            
+                    
                     elif charIn in {'t', 'T'}:
                         global testTimer
                         global testList
@@ -213,6 +218,29 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         print("Select a duty cycle to begin")
                         motor = motor_1
                         state = 7
+                        
+                    elif charIn in {'w', 'W'}:
+                        
+                        global cFlag
+                        
+                       
+                        if cFlag is True:
+                            cFlag = False
+                        else:
+                            cFlag = True  
+                            state = 11
+                            print('state 11')
+                            
+                    elif charIn in {'r', 'R'}:
+                        pass
+                        
+                    ''' elif charIn in {'y', 'Y'}:
+                        pass
+                    
+                    elif charIn in {'k','K'}:
+                        pass
+                    '''
+                    
 
                 # If no additional data was sent, and you're running a test, keep testing
                 elif testFlag is True:
@@ -349,7 +377,16 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     motor = motor_1
                     state = 7
                     
-                        
+            elif state == 11:                
+                ref = 1500
+                velocity = 60*(dVar.read()/(-period/1000000))/4000
+                gain = 0.1
+                
+                controller.set_Kp(gain)
+                duty = controller.run(ref, velocity)
+                motor_1.set_duty(duty)
+                
+                print(velocity)
 
             yield state
 
