@@ -21,19 +21,22 @@ class DRV8847:
         self.faultPin = faultPin
         
         self.faultInt = ExtInt(self.faultPin, mode=ExtInt.IRQ_FALLING, pull=Pin.PULL_UP, callback=self.fault_cb)
+        self.fault = False
         
     def enable(self):
         '''!@brief      Disable the fault, set sleepPin to high.
         '''
         self.faultInt.disable()
         self.sleepPin.high()
-        time.sleep_us(50)
+        time.sleep_us(100)
         self.faultInt.enable()
+        self.fault = False
     
     def disable(self):
         '''!@brief      Set sleepPin to low.
         '''
         self.sleepPin.low()
+        self.fault = True
         
     def fault_cb(self, IRQ_src):
         '''!@brief      Disables motors if fault is triggered.

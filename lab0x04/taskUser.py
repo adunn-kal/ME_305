@@ -15,13 +15,21 @@ import closedLoop
 #
 ser = pyb.USB_VCP()
 bufferString = ''
+
 testFlag = False
 cFlag = False
 testTimer = 0
 testList = []
 speedList = []
 
+rList = []
+responseList = []
+rFlag = False
+rRef = 0
+
 controller = closedLoop.ClosedLoop()
+
+# ---------------------------------Functions-----------------------------------
 
 def getDuty(motor):
     global bufferString
@@ -119,6 +127,7 @@ def getGain(controller):
     
 def getSpeed(controller):
     global bufferString
+    global myRef
     
     # if any characters have been typed
     if ser.any():
@@ -149,11 +158,19 @@ def getSpeed(controller):
             mySpeed = int(bufferString)
             print(f"Target speed = {mySpeed}")
             controller.ref = mySpeed
+            myRef = mySpeed
             bufferString = ''
+            
+            
+            if rFlag is True:
+                global rTimer
+                rTimer = ticks_us()
+                print(f"rTimer set to: {rTimer}")
+                 
             state = 1
-            # global testTimer
-            # testTimer = ticks_us()
+                
             return state
+        
         else:
             state = 13
             return state
@@ -227,6 +244,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
     #
     state = 0
     
+    global rFlag
     global bufferString
     bufferString = ''
 
@@ -244,6 +262,8 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
             if state == 0:
                 printHelp()
                 state = 1
+
+# ---------------------------------State One-----------------------------------
 
             # Await Command
             elif state == 1:
@@ -316,22 +336,40 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         else:
                             cFlag = True  
                             state = 12
-                            print('Choose a gain value')
+                            print('Choose a gain value (0.01-0.1)')
                             
                     elif charIn in {'k','K'}:
-                        print("Choose a new gain")
+                        print("Choose a new gain (0.01-0.1)")
                         state = 12
                         
                     elif charIn in {'y', 'Y'}:
-                        print("Choose a new motor speed [RPM]")
+                        print("Choose a new motor speed [RPM] (0-1800)")
                         state = 13
                             
                     elif charIn in {'r', 'R'}:
-                        pass
+                        global rTimer
+                        global rList
+                        global responseList
+                        global rFlag
+                        global cFlag
+                        
+                        # Reset testing parameters
+                        rList = []
+                        responseList = []
+                        rFlag = True
+                        cFlag = True
+                        
+                        print("Entering step response test, press 's' at any time to exit.")
+                        print("Select an appropriate gain to start (0.01-0.1)")
+                        state = 12
                         
                     
-                    
+# -------------------------------No Character----------------------------------                  
 
+                # If running a step response test, keep running
+                elif rFlag is True:
+                    state = 14
+                    
                 # If you were controlling, keep controlling
                 elif cFlag is True:
                     state = 11
@@ -340,22 +378,18 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 elif testFlag is True:
                     state = 10
                 
-                
 
                 # If you're collecting data, print it
                 if gFlag.read():
                     # Update gTime in mS
                     gTime.write(ticks_diff(ticks_us(), timerStart)/1000.0)
 
-                    """
-                    # Print time and position values
-                    if state != 6:
-                        print(f"{gTime.read()},{pVar.read()}")
-                    """
-
                     # If the timer has expired
                     if gTime.read() > 30*1000:
                         state = 6
+
+
+# ---------------------------------Sub States----------------------------------
 
             # Zero Encoder
             elif state == 2:
@@ -385,15 +419,45 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
             # End collection
             elif state == 6:
                 global testFlag
-                global speedList
+                global rFlag
+                
+                
                 # If you were running a test
                 if testFlag is True:
-                    global testFlag
+                    global speedList
                     testFlag = False
                     print("Test concluded")
                     print("Duty Cylce [%],Speed [rpm]")
                     for duty in speedList:
                         print(f"{duty[0]},{duty[1]}")
+                    state = 1
+                
+                # If you were running a step response
+                elif rFlag is True:
+                    global responseList
+                    global cFlag
+                    
+                    rFlag = False
+                    cFlag = False
+                    motor_1.set_duty(0)
+                    print("Step Response Ended")
+                    
+                    # Reset Fault
+                    if driver.fault is True:
+                        print("Press 'c' to clear fault")
+                        state = 1
+                        
+                    # Print all info for test
+                    else:
+                        print("Time [s],Speed [rad/s],Actuation Level [%],Reference Speed [rad/s],Gain")
+                        for time in responseList:
+                            myTime = time[0]/1000000.0
+                            myVelocity = (3.14159/0.5)*time[1]/60.0
+                            myLevel = time[2]
+                            myReference = (3.14159/0.5)*time[3]/60.0
+                            myGain = time[4]
+                            print(f"{myTime},{myVelocity},{myLevel},{myReference},{myGain}")
+                        state = 1
                     
                 
                 # If you were collecting data
@@ -422,8 +486,8 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     tArray.write(timeArray)
                     
                     gFlag.write(False)
-                    
-                state = 1
+                    state = 1
+
                 
             # Set duty
             elif state == 7:
@@ -433,7 +497,8 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
             # Reset flag
             elif state == 8:
                 print("reseting")
-                motor.set_duty(0)
+                motor_1.set_duty(0)
+                motor_2.set_duty(0)
                 driver.enable()
                 print("Fault reset")
                 state = 1
@@ -474,7 +539,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     state = 7
                   
             # Run Controller
-            elif state == 11:                
+            elif state == 11:
                 velocity = 60*(dVar.read()/(-period/1000000))/4000
 
                 duty = controller.run(velocity)
@@ -486,10 +551,65 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
             elif state == 12:
                 state = getGain(controller)
                 
-            # Update COntroller Speed
+            # Update Controller Speed
             elif state == 13:
                 state = getSpeed(controller)
 
+            # Run step response test
+            elif state == 14:
+                global rTimer
+                global responseList
+                global myRef
+                
+                # Run Test with reference velocity of 0 for first second
+                if ticks_diff(ticks_us(), rTimer) < 1000000:
+                    # Set reference to 0
+                    controller.ref = 0
+                    velocity = 60*(dVar.read()/(-period/1000000))/4000
+                    
+                    # Append data to rList
+                    responseList.append([ticks_diff(ticks_us(), rTimer),
+                                  velocity,
+                                  controller.duty,
+                                  myRef,
+                                  controller.gain])
+                    
+                    print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                    
+                    if driver.fault is True:
+                        print("Fault Detected")
+                        state = 6
+                    
+                    else:
+                        state = 11
+                    
+                # Continue test for 2 more seconds at reference velocity
+                elif ticks_diff(ticks_us(), rTimer) < 3000000:
+                    # Set reference to given ref
+                    controller.ref = myRef
+                    
+                    velocity = 60*(dVar.read()/(-period/1000000))/4000
+                    
+                    # Append data to rList
+                    responseList.append([ticks_diff(ticks_us(), rTimer),
+                                  velocity,
+                                  controller.duty,
+                                  myRef,
+                                  controller.gain])
+                    
+                    print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                    
+                    if driver.fault is True:
+                        print("Fault Detected")
+                        state = 6
+                    
+                    else:
+                        state = 11
+                
+                # End test after 3 total seonds
+                else:
+                    # Move to end collection
+                    state = 6
 
             yield state
 
