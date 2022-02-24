@@ -7,8 +7,12 @@
 '''
 
 class ClosedLoop:
+    '''!@brief      Closed loop control of DC motor speed.
+    '''
     
     def __init__(self):
+        '''!@brief      Initialize the gain and duty.
+        '''
         self.gain = 0
         self.max = 100
         self.min = -100
@@ -16,6 +20,9 @@ class ClosedLoop:
         self.ref = 0
         
     def run(self, speed):
+        '''!@brief      Use feedback to set the duty cycle.
+            @param      speed retrieves the velocity from taskUser and uses it as feedback.
+        '''
         self.speed = speed
         
         error = self.ref - self.speed
@@ -33,5 +40,8 @@ class ClosedLoop:
         return duty
     
     def set_Kp(self, gain):
+        '''!@brief     Set the gain.
+            @param     Set the gain to what is specified in taskUser.
+        '''
         self.gain = gain
         
