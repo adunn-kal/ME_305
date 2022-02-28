@@ -192,13 +192,12 @@ def printHelp():
     print("+-----------------------------------------+")
     print("|Command: h           display help message|")
     print("|Command: z                  reset encoder|")
-    print("|Command: p         print encoder position|")
-    print("|Command: d            print encoder delta|")
-    print("|Command: v         print encoder velocity|")
+    print("|Command: p           print motor position|")
+    print("|Command: d              print motor delta|")
+    print("|Command: v           print motor velocity|")
     print("|Command: m         set motor 1 duty cycle|")
     print("|Command: M         set motor 2 duty cycle|")
-    print("|Command: c          clear fault condition|")
-    print("|Command: g           collect encoder data|")
+    print("|Command: g             collect motor data|")
     print("|Command: t                 run speed test|")
     print("|Command: y    choose closed loop velocity|")
     print("|Command: k        choose closed loop gain|")
@@ -208,7 +207,7 @@ def printHelp():
     print("+-----------------------------------------+")
     
 
-def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, driver, motor_1, motor_2):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, motor_1, motor_2, myIMU):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -307,9 +306,6 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         bufferString = ''
                         state = 7
                     
-                    elif charIn in {'c', 'C'}:
-                        state = 8
-                        
                     elif charIn in {'v', 'V'}:
                         state = 9
             
@@ -425,6 +421,11 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 global testFlag
                 global rFlag
                 
+                motor_1.set_duty(0)
+                motor_2.set_duty(0)
+                cFlag = False
+                
+                
                 
                 # If you were running a test
                 if testFlag is True:
@@ -446,22 +447,17 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     motor_1.set_duty(0)
                     print("Step Response Ended")
                     
-                    # Reset Fault
-                    if driver.fault is True:
-                        print("Press 'c' to clear fault")
-                        state = 1
-                        
+
                     # Print all info for test
-                    else:
-                        print("Time [s],Speed [rad/s],Actuation Level [%],Reference Speed [rad/s],Gain")
-                        for time in responseList:
-                            myTime = time[0]/1000000.0
-                            myVelocity = (3.14159/0.5)*time[1]/60.0
-                            myLevel = time[2]
-                            myReference = (3.14159/0.5)*time[3]/60.0
-                            myGain = time[4]
-                            print(f"{myTime},{myVelocity},{myLevel},{myReference},{myGain}")
-                        state = 1
+                    print("Time [s],Speed [rad/s],Actuation Level [%],Reference Speed [rad/s],Gain")
+                    for time in responseList:
+                        myTime = time[0]/1000000.0
+                        myVelocity = (3.14159/0.5)*time[1]/60.0
+                        myLevel = time[2]
+                        myReference = (3.14159/0.5)*time[3]/60.0
+                        myGain = time[4]
+                        print(f"{myTime},{myVelocity},{myLevel},{myReference},{myGain}")
+                    state = 1
                     
                 
                 # If you were collecting data
@@ -496,16 +492,6 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
             # Set duty
             elif state == 7:
                 state = getDuty(motor)
-
-                        
-            # Reset flag
-            elif state == 8:
-                print("reseting")
-                motor_1.set_duty(0)
-                motor_2.set_duty(0)
-                driver.enable()
-                print("Fault reset")
-                state = 1
                 
                 
             # Print velocity
@@ -544,10 +530,11 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                   
             # Run Controller
             elif state == 11:
-                velocity = 60*(dVar.read()/(-period/1000000))/4000
+                #velocity = 60*(dVar.read()/(-period/1000000))/4000
 
-                duty = controller.run(velocity)
-                motor_1.set_duty(duty)
+                duty = controller.run(pVar.read()[0], pVar.read()[1])
+                motor_1.set_duty(duty[1])
+                motor_2.set_duty(duty[0])
 
                 state = 1
 
@@ -580,12 +567,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     
                     print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
                     
-                    if driver.fault is True:
-                        print("Fault Detected")
-                        state = 6
-                    
-                    else:
-                        state = 11
+                    state = 11
                     
                 # Continue test for 2 more seconds at reference velocity
                 elif ticks_diff(ticks_us(), rTimer) < 3000000:
@@ -603,12 +585,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                     
                     print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
                     
-                    if driver.fault is True:
-                        print("Fault Detected")
-                        state = 6
-                    
-                    else:
-                        state = 11
+                    state = 11
                 
                 # End test after 3 total seonds
                 else:

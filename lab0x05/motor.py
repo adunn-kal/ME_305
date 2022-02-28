@@ -1,7 +1,3 @@
-'''!@file       motor.py
-    @brief      Initialize a motor object and control it.
-    @details    Set the duty cycle of the motor.
-'''
 from pyb import Pin, Timer
 
 class Motor:
@@ -10,13 +6,6 @@ class Motor:
     '''
     
     def __init__(self, PWM_time, IN1_pin, IN2_pin, ch1, ch2):
-        '''!@brief      Intializes the motor object.
-            @param      PWM_time The timer for the motor.
-            @param      IN1_pin moves the motor forward.
-            @param      IN2_pin moves the motor backwards.
-            @param      ch1 channel 1 for forward movement.
-            @param      Ch2 channel 2 for backward movement.
-        '''
         self.forwardPin = IN1_pin
         self.backPin = IN2_pin
         self.duty = 0
@@ -27,6 +16,7 @@ class Motor:
         '''!@brief      Set the duty cycle of the motor object.
             @param      duty define what the duty cycle value is, ranges from -100 to 100.
         '''
+        print(f"Setting duty to {duty}%")
         self.duty = duty
         
         if duty > 0:

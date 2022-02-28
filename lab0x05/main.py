@@ -14,13 +14,13 @@
     
 '''
 
-from pyb import Pin
-import taskEncoder
+from pyb import Pin, Timer
+import taskMotor
 import taskUser
 import shares
 import array
 from motor import Motor
-from drv8847 import DRV8847
+import bno055
 
 ## @brief    A flag for the zero input.
 #  @details  True when the user types "Z".
@@ -66,24 +66,31 @@ index = shares.Share(0)
 
 
 if __name__ == "__main__":
-    # Instantiate driver object
-    myDriver = DRV8847(Pin.cpu.A15, Pin.cpu.B2, 3)
-    motor_1 = myDriver.makeMotor(Pin.cpu.B4, Pin.cpu.B5, 1, 2)
-    motor_2 = myDriver.makeMotor(Pin.cpu.B0, Pin.cpu.B1, 3, 4)
+    # Instantiate motor objects
+    PWM_time = Timer(3, freq = 20000)
+    motor_1 = Motor(PWM_time, Pin.cpu.B4, Pin.cpu.B5, 1, 2)
+    motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
     
-    myDriver.enable()
+    nSLEEP = Pin(Pin.cpu.A15, mode=Pin.OUT_PP)
+    nSLEEP.high()
+    
+    # Instantiate IMU object and run calibration
+    myIMU = bno055.BNO055(10000)
+    myIMU.checkCalibration()
+    myIMU.operatingMode('IMU')
+    
     
     # Instantiate task objects
     
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, myDriver, motor_1, motor_2)
+    userTask = taskUser.taskUserFcn('Task User', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, motor_1, motor_2, myIMU)
     
     ## @brief    The encoder task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    encoderTask = taskEncoder.taskEncoderFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index)
+    encoderTask = taskMotor.taskMotorFcn('Task encoder', 10000, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, myIMU)
     
     ## @brief    A list of tasks.
     #  @details  Includes all tasks in the order they should be performed.

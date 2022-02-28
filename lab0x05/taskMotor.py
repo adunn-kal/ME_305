@@ -6,7 +6,7 @@
     @date    February 03, 2022
  '''
 import pyb
-import encoder
+import bno055
 from time import ticks_us, ticks_add, ticks_diff
 
 ## @brief pin B6 object
@@ -18,7 +18,7 @@ pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
-def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index):
+def taskMotorFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, myIMU):
     '''! Calls the Encoder class to perform functions.
 
         @details Uses the Encoder methods and attributes to return and perform
@@ -39,10 +39,10 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
     global pinB6
     global pinB7
     
-    ## @brief The encoder object being used.
+    ## @brief The imu object being used.
     #  @details contains specific attributes and methods.
     #
-    myEncoder = encoder.Encoder(pinB6, pinB7, 4)
+    #myIMU = bno055.BNO055()
     
     ## @brief The state that the program is in.
     #  @details Begins at 0 and moves to new states based on the values of 
@@ -59,14 +59,14 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
         if ticks_diff(currentTime, nextTime) >= 0:
 
             nextTime = ticks_add(ticks_us(), period)
-            myPos = myEncoder.position
-            myDif = myEncoder.dif
+            myPos = myIMU.pos
+            myDif = myIMU.dif
             pVar.write(myPos)
             dVar.write(myDif)
 
             # Update Position
             if state == 0:
-                myEncoder.update()
+                myIMU.update()
 
                 # If gFlag is true, add readings to arrays
                 if gFlag.read():
@@ -86,7 +86,7 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
                     
                     # Add new info to arrays
                     if isinstance(gTime.read(), float):
-                        posArray[index.read()] = myEncoder.position
+                        posArray[index.read()] = myIMU.position
                         timeArray[index.read()] = int(gTime.read())
                         
                         index.write(index.read() + 1)
@@ -100,9 +100,9 @@ def taskEncoderFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tA
 
             # Zero position
             elif state == 1:
-                #print(f"Encoder position was {myEncoder.position}")
-                myEncoder.zero(myEncoder.position)
-                #print(f"Encoder position = {myEncoder.position}")
+                #print(f"Encoder position was {myIMU.position}")
+                myIMU.zero(myIMU.pos)
+                #print(f"Encoder position = {myIMU.position}")
                 zFlag.write(False)
                 state = 0
                 #print("Moving back to s0")
