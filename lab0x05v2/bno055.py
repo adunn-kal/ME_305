@@ -104,19 +104,7 @@ class BNO055:
             print("Calibration file found")
             #os.remove('IMU_cal_coeffs.txt')
             self.readCalibration()
-            '''
-            file = open("IMU_cal_coeffs.txt", 'r')
-            data = file.read()
-            if len(data) < 22:
-                os.remove('IMU_cal_coeffs.txt')
-                print("No calibration file found")
-                self.writeCalibration()
-            
-            else:
-                print("Calibration file found")
-                #os.remove('IMU_cal_coeffs.txt')
-                self.readCalibration()
-                '''
+
         
         # If no calibration file is present, tell user to move around until it
         # finishes calibrating

@@ -82,7 +82,7 @@ def getDuty(motor):
         state = 7
         return state
     
-def getGain(controller):
+def getKp(controller):
     global bufferString
     
     # if any characters have been typed
@@ -109,13 +109,11 @@ def getGain(controller):
         # If it's an enter
         if myChar in {'\r', '\n'}:
             myKp = float(bufferString)
-            print(f"My gain = {myKp}")
+            print(f"My Kp = {myKp}")
             controller.set_Kp(myKp)
             bufferString = ''
-            print("Choose motor speed [RPM]")
+            print("Choose a Kd value (0 - 3)")
             state = 13
-            # global testTimer
-            # testTimer = ticks_us()
             return state
         else:
             state = 12
@@ -125,7 +123,7 @@ def getGain(controller):
         state = 12
         return state
     
-def getSpeed(controller):
+def getKd(controller):
     global bufferString
     global myRef
     
@@ -133,17 +131,14 @@ def getSpeed(controller):
     if ser.any():
         myChar = ser.read(1).decode()
         
+        # If it's a decimal in the first place
+        if myChar == '.':
+            bufferString += myChar
+        
         # If it's a digit
-        if myChar.isdigit():
+        elif myChar.isdigit():
             # Append it to the string
             bufferString += myChar
-            
-        # If it's a minus
-        elif myChar == '-':
-            # Is it the first character
-            if len(bufferString) == 0:
-                # Append it to the string
-                bufferString += myChar
             
         # If it's a backspace
         elif myChar in {'\b', '\x7f', '\x08'}:
@@ -155,10 +150,10 @@ def getSpeed(controller):
         
         # If it's an enter
         if myChar in {'\r', '\n'}:
-            mySpeed = int(bufferString)
-            print(f"Target speed = {mySpeed}")
-            controller.ref = mySpeed
-            myRef = mySpeed
+            myKd = float(bufferString)
+            myKd /= 250.0
+            print(f"My Kd = {myKd}")
+            controller.set_Kd(myKd)
             bufferString = ''
             
             
@@ -207,7 +202,7 @@ def printHelp():
     print("+-----------------------------------------+")
     
 
-def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, motor_1, motor_2, myIMU):
+def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, vVar, gTime, gArray, tArray, index, motor_1, motor_2, myIMU):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -336,14 +331,14 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                         else:
                             cFlag = True  
                             state = 12
-                            print('Choose a gain value (0.01-0.1)')
+                            print('Choose a Kp value (1 - 5)')
                             
                     elif charIn in {'k','K'}:
-                        print("Choose a new gain (0.01-0.1)")
+                        print('Choose a Kp value (1 - 5)')
                         state = 12
                         
                     elif charIn in {'y', 'Y'}:
-                        print("Choose a new motor speed [RPM] (0-1800)")
+                        print("Choose a Kd value (0 - 3)")
                         state = 13
                             
                     elif charIn in {'r', 'R'}:
@@ -496,8 +491,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 
             # Print velocity
             elif state == 9:
-                # Velocity = (delta [ticks] / period [s]) / CPR [ticks/rev]
-                print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                print(f"Velocity = {vVar.read()}")
                 state = 1
                 
             
@@ -511,7 +505,7 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                 if ticks_diff(ticks_us(), testTimer) < 2000000:
                     velocity = 60*(dVar.read()/(-period/1000000))/4000
                     testList.append(velocity)
-                    print(f"Velocity = {60*(dVar.read()/(-period/1000000))/4000}")
+                    print(f"Velocity = {vVar.read()}")
                     state = 1
                 
                 # Continue test for 2 seconds between each run
@@ -530,21 +524,20 @@ def taskUserFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArra
                   
             # Run Controller
             elif state == 11:
-                #velocity = 60*(dVar.read()/(-period/1000000))/4000
-
-                duty = controller.run(pVar.read()[0], pVar.read()[1])
+                duty = controller.run(pVar.read()[0], pVar.read()[1],
+                                      vVar.read()[0], vVar.read()[1])
                 motor_1.set_duty(duty[1])
                 motor_2.set_duty(duty[0])
 
                 state = 1
 
-            # Update Controller Gain
+            # Update Controller Kp
             elif state == 12:
-                state = getGain(controller)
+                state = getKp(controller)
                 
-            # Update Controller Speed
+            # Update Controller Kd
             elif state == 13:
-                state = getSpeed(controller)
+                state = getKd(controller)
 
             # Run step response test
             elif state == 14:

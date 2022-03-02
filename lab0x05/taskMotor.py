@@ -18,7 +18,7 @@ pinB6 = pyb.Pin(pyb.Pin.cpu.B6)
 pinB7 = pyb.Pin(pyb.Pin.cpu.B7)
 
 
-def taskMotorFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArray, index, myIMU):
+def taskMotorFcn(taskName, period, zFlag, gFlag, pVar, dVar, vVar, gTime, gArray, tArray, index, myIMU):
     '''! Calls the Encoder class to perform functions.
 
         @details Uses the Encoder methods and attributes to return and perform
@@ -61,8 +61,10 @@ def taskMotorFcn(taskName, period, zFlag, gFlag, pVar, dVar, gTime, gArray, tArr
             nextTime = ticks_add(ticks_us(), period)
             myPos = myIMU.pos
             myDif = myIMU.dif
+            myVelocity = myIMU.velocity
             pVar.write(myPos)
             dVar.write(myDif)
+            vVar.write(myVelocity)
 
             # Update Position
             if state == 0:
