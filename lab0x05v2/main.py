@@ -60,9 +60,6 @@ if __name__ == "__main__":
     motor_1 = Motor(PWM_time, Pin.cpu.B4, Pin.cpu.B5, 1, 2)
     motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
     
-    #nSLEEP = Pin(Pin.cpu.A15, mode=Pin.OUT_PP)
-    #nSLEEP.high()
-    
     # Instantiate IMU object and run calibration
     myIMU = bno055.BNO055(10000)
     myIMU.checkCalibration()

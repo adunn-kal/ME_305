@@ -168,7 +168,6 @@ def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
     #
     state = 0
     
-    global rFlag
     global bufferString
     bufferString = ''
 
@@ -241,7 +240,7 @@ def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
                         state = 5
                         print('Choose a Kp value (1 - 5)')
                         
-                    # Set Kp
+                    # Set Kd
                     elif charIn in {'y', 'Y'}:
                         state = 6
                         print('Choose a Kd value (0 - 3)')
