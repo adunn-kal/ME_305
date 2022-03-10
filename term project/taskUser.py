@@ -20,6 +20,8 @@ cFlag = False
 share = None
 
 myGain = [0, 0]
+myInnerGain = [0, 0]
+myOuterGain = [0, 0]
 
 # ---------------------------------Functions-----------------------------------
     
@@ -130,8 +132,8 @@ def printHelp():
     print("|Command: h           display help message|")
     print("|Command: p             print euler angles|")
     print("|Command: v       print angular velocities|")
-    print("|Command: k                  choose new Kp|")
-    print("|Command: y                  choose new Kd|")
+    print("|Command: i         choose new inner gains|")
+    print("|Command: o         choose new outer gains|")
     print("|Command: w         enable/disable control|")
     print("|Command: s                         E stop|")
     print("+-----------------------------------------+")
@@ -217,8 +219,8 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
                     # Enable Closed Loop Control
                     elif charIn in {'w', 'W'}:
                         global cFlag
-                        global myKp
-                        global myKd
+                        global myInnerGain
+                        global myOuterGain
                         
                         # Update gains
                         myInnerKp = innerGain.read()[0]
@@ -234,8 +236,12 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
                             
                         # Only ask to set Kp if you haven't yet
                         if myInnerKp == 0:
-                            print('Choose a Kp value (1 - 5)')
-                            state = 5
+                            print("Gains set to Kp = 5, Kd = 1")
+                            myInnerGain = [5, 1.0/250.0]
+                            myOuterGain = [5.0, 1.0/(250.0)]
+                            innerGain.write(myInnerGain)
+                            outerGain.write(myOuterGain)
+                            state = 1
                             
                     # Update Inner Gains
                     elif charIn in {'i', 'I'}:
@@ -276,12 +282,11 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
 
             # Run Controller
             elif state == 4:
-                #global Kp
-                #global Kd
-                '''innerGain.write(myInnerKp)
-                innerGain.write(myInnerKd)
-                outerGain.write(myOuterKp)
-                outerGain.write(myOuterKd)'''
+                global myInnerGain
+                global myOuterGain
+                
+                #innerGain.write(myInnerGain)
+                #outerGain.write(myOuterGain)
 
                 state = 1
 

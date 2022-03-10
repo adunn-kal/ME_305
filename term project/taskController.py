@@ -58,8 +58,8 @@ def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar, posit
             elif state == 1:
                 innerLoop.set_Kp(innerGain.read()[0])
                 innerLoop.set_Kd(innerGain.read()[1])
-                outerLoop.set_Kp(outerGain.read()[0])
-                outerLoop.set_Kd(outerGain.read()[1])
+                outerLoop.set_Kp(outerGain.read()[0]/20.0)
+                outerLoop.set_Kd(outerGain.read()[1]/20.0)
                 
                 state = 2
                 
