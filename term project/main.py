@@ -21,36 +21,42 @@ import taskController
 import shares
 from motor import Motor
 import bno055
+import taskTouch
+import touch
 
 
 ## @brief    The shared position value.
 #  @details  Measured in ticks, can be positive or negative.
 #
-pVar = shares.Share()
+theta = shares.Share()
 
 ## @brief    The shared velocity value.
 #  @details  Measured in rad/s, can be positive or negative.
 #            Measures angular velocity in x, y, z.
 #
-vVar = shares.Share()
+thetaDot = shares.Share()
 
 ## @brief    The shared velocity value.
 #  @details  Measured in rad/s, can be positive or negative.
 #            Measures angular velocity in x, y, z.
 #
-KpVar = shares.Share(0)
+innerGain = shares.Share([0,0])
 
 ## @brief    The shared velocity value.
 #  @details  Measured in rad/s, can be positive or negative.
 #            Measures angular velocity in x, y, z.
 #
-KdVar = shares.Share(0)
+outerGain = shares.Share([0,0])
 
 ## @brief    The shared velocity value.
 #  @details  Measured in rad/s, can be positive or negative.
 #            Measures angular velocity in x, y, z.
 #
 sVar = shares.Share(0)
+
+velocity = shares.Share(0)
+
+position = shares.Share(0)
 
 
 
@@ -65,29 +71,40 @@ if __name__ == "__main__":
     myIMU.checkCalibration()
     myIMU.operatingMode('IMU')
     
+    #Instatiate touch objects
+    myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100)
+    myTouch.calibrate()
+    
     
     # Instantiate task objects
     
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn(10000, pVar, vVar, KpVar, KdVar, sVar)
+    userTask = taskUser.taskUserFcn(10000, theta, thetaDot, innerGain, outerGain, sVar)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    imuTask = taskIMU.taskIMUFcn(10000, pVar, vVar, myIMU)
+    imuTask = taskIMU.taskIMUFcn(10000, theta, thetaDot, myIMU)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    controllerTask = taskController.taskControllerFcn(10000, pVar, vVar, KpVar,
-                                                      KdVar, sVar, motor_1, motor_2)
+    controllerTask = taskController.taskControllerFcn(10000, theta, thetaDot, innerGain,
+                                                      outerGain, sVar, position, velocity, 
+                                                      motor_1, motor_2)
+    ## @brief    The IMU task.
+    #  @details  Includes name, period, and all neccesary shared variables.
+    #
+    touchTask = taskTouch.taskTouchFcn(10000, position, velocity, myTouch)
+    
     
     ## @brief    A list of tasks.
     #  @details  Includes all tasks in the order they should be performed.
     #
-    taskList = [userTask, imuTask, controllerTask]
+    taskList = [userTask, imuTask, touchTask, controllerTask]
+    
 
     while True:
         try:

@@ -9,9 +9,10 @@
 from time import ticks_us, ticks_add, ticks_diff
 import closedLoop
 
-controller = closedLoop.ClosedLoop()
+innerLoop = closedLoop.ClosedLoop()
+outerLoop = closedLoop.ClosedLoop()
 
-def taskControllerFcn(period, pVar, vVar, KpVar, KdVar, sVar, motor_1, motor_2):
+def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar, position, velocity, motor_1, motor_2):
     '''! Calls the Encoder class to perform functions.
 
         @details Uses the Encoder methods and attributes to return and perform
@@ -55,15 +56,19 @@ def taskControllerFcn(period, pVar, vVar, KpVar, KdVar, sVar, motor_1, motor_2):
 
             # Update Gains
             elif state == 1:
-                controller.set_Kp(KpVar.read())
-                controller.set_Kd(KdVar.read())
+                innerLoop.set_Kp(innerGain.read()[0])
+                innerLoop.set_Kd(innerGain.read()[1])
+                outerLoop.set_Kp(outerGain.read()[0])
+                outerLoop.set_Kd(outerGain.read()[1])
                 
                 state = 2
                 
             # Run Controller
             elif state == 2:
-                duty = controller.run(pVar.read()[0], pVar.read()[1],
-                                      vVar.read()[0], vVar.read()[1])
+                ref = outerLoop.run(position.read()[0], position.read()[1], 0, 0, 0, 0)
+                #print(ref)
+                duty = innerLoop.run(theta.read()[0], theta.read()[1],
+                                      thetaDot.read()[0], thetaDot.read()[1], -ref[1], ref[0])
                 motor_1.set_duty(duty[1])
                 motor_2.set_duty(duty[0])
                 
@@ -81,8 +86,8 @@ def taskControllerFcn(period, pVar, vVar, KpVar, KdVar, sVar, motor_1, motor_2):
                 motor_1.set_duty(0)
                 motor_2.set_duty(0)
                 
-                KpVar.write(0)
-                KdVar.write(0)
+                innerGain.write([0,0])
+                outerGain.write([0,0])
                 
                 state = 0
 

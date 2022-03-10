@@ -1,5 +1,5 @@
-'''!@file    taskIMU.py
-    @brief   Lab0x02 Encoder Task.
+'''!@file    taskTouch.py
+    @brief    Task.
     @details The class that reports and records the position of the motor.
     @author  Alexander Dunn
     @author  Emma Jacobs
@@ -8,19 +8,8 @@
 from time import ticks_us, ticks_add, ticks_diff
 
 
-def taskIMUFcn(period, theta, thetaDot, myIMU):
-    '''! Calls the Encoder class to perform functions.
-
-        @details Uses the Encoder methods and attributes to return and perform
-        actions based on shared variables.
-        
-        @param zFlag The shared variable associated with the zero command.
-
-        @param theta The shared variable holding position information.
-
-        @param dVar The shared variable holding encoder delta information.
-
-        @return zFlag, theta, dVar.
+def taskTouchFcn(period, position, velocity, myTouch):
+    '''! 
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.
@@ -42,15 +31,13 @@ def taskIMUFcn(period, theta, thetaDot, myIMU):
         if ticks_diff(currentTime, nextTime) >= 0:
 
             nextTime = ticks_add(ticks_us(), period)
-            myPos = myIMU.pos
-            myVelocity = myIMU.velocity
-            theta.write(myPos)
-            thetaDot.write(myVelocity)
 
             # Update Position
             if state == 0:
-                myIMU.update()
-
+                myPos = myTouch.update()
+               # myVelocity = myTouch.velocity
+                position.write(myPos)
+                #velocity.write(myVeocity)
 
             yield state
 

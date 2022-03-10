@@ -78,14 +78,12 @@ class Touch:
     def update(self):
         z = self.zScan()
         if z:
-            sleep_us(4)
             x = self.xScan()
-            sleep_us(4)
             y = self.yScan()
             
             return x,y,z
         else:
-            return None, None, z
+            return 0, 0, z
         
     def calibrate(self):
         self.xCal = 0

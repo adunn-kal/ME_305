@@ -16,10 +16,10 @@ class ClosedLoop:
         self.duty_y = 0
         self.ref = 0
         
-    def run(self, roll, pitch, Vx, Vy):        
-        duty_x = -self.Kp*(roll) - self.Kd*(Vx)
+    def run(self, x, y, Vx, Vy, xref, yref):        
+        duty_x = self.Kp*(xref - x) - self.Kd*(Vx)
         
-        duty_y = -self.Kp*(pitch) - self.Kd*(Vy)
+        duty_y = self.Kp*(yref - y) - self.Kd*(Vy)
 
         
         if duty_x > self.max:

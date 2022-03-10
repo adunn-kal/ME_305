@@ -17,15 +17,15 @@ bufferString = ''
 
 cFlag = False
 
-myKp = 0
-myKd = 0
+share = None
+
+myGain = [0, 0]
 
 # ---------------------------------Functions-----------------------------------
     
 def getKp():
     global bufferString
-    global myKp
-    global myKd
+    global myGain
     
     # if any characters have been typed
     if ser.any():
@@ -50,16 +50,15 @@ def getKp():
         
         # If it's an enter
         if myChar in {'\r', '\n'}:
-            myKp = float(bufferString)
+            #myKp = float(bufferString)
+            #share.write(float(bufferString))
+            myGain[0] = float(bufferString)
             bufferString = ''
             
-            # Set Kd if it hasn't been set yet
-            if myKd == 0:
-                print("Choose a Kd value (0 - 3)")
-                state = 6 
-            else:
-                state = 1
-                
+            # Set Kd
+            print("Choose a Kd value (0 - 3)")
+            state = 6 
+
             return state
         
         else:
@@ -70,9 +69,10 @@ def getKp():
         state = 5
         return state
     
-def getKd():
+def getKd(share):
     global bufferString
-    global myKd
+    global myGain
+    global cFlag
     
     # if any characters have been typed
     if ser.any():
@@ -97,8 +97,11 @@ def getKd():
         
         # If it's an enter
         if myChar in {'\r', '\n'}:
-            myKd = float(bufferString)
-            myKd /= 250.0
+            #share.write(float(bufferString)/250.0)
+            #myKd = float(bufferString)
+            #myKd /= 250.0
+            myGain[1] = float(bufferString)/250.0
+            share.write(myGain)
             bufferString = ''
                  
             state = 1
@@ -134,7 +137,7 @@ def printHelp():
     print("+-----------------------------------------+")
     
 
-def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
+def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -218,8 +221,7 @@ def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
                         global myKd
                         
                         # Update gains
-                        myKp = KpVar.read()
-                        myKd = KdVar.read()
+                        myInnerKp = innerGain.read()[0]
                         
                         if cFlag is True:
                             print("Control Disabled")
@@ -231,19 +233,23 @@ def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
                             cFlag = True  
                             
                         # Only ask to set Kp if you haven't yet
-                        if myKp == 0:
+                        if myInnerKp == 0:
                             print('Choose a Kp value (1 - 5)')
                             state = 5
                             
-                    # Set Kp
-                    elif charIn in {'k', 'K'}:
+                    # Update Inner Gains
+                    elif charIn in {'i', 'I'}:
+                        global share
                         state = 5
+                        share = innerGain
                         print('Choose a Kp value (1 - 5)')
                         
-                    # Set Kd
-                    elif charIn in {'y', 'Y'}:
-                        state = 6
-                        print('Choose a Kd value (0 - 3)')
+                    # Update Outer Gains
+                    elif charIn in {'o', 'O'}:
+                        global share
+                        state = 5
+                        share = outerGain
+                        print('Choose a Kp value (1 - 5)')
                             
                     # E Stop
                     elif charIn in {'s', 'S'}:
@@ -260,30 +266,33 @@ def taskUserFcn(period, pVar, vVar, KpVar, KdVar, sVar):
 
             # Print Euler Angles
             elif state == 2:
-                print(f"Position = {pVar.read()}")
+                print(f"Position = {theta.read()}")
                 state = 1
                 
             # Print Angular Velocities
             elif state == 3:
-                print(f"Velocity = {vVar.read()}")
+                print(f"Velocity = {thetaDot.read()}")
                 state = 1
 
             # Run Controller
             elif state == 4:
-                global Kp
-                global Kd
-                KpVar.write(myKp)
-                KdVar.write(myKd)
+                #global Kp
+                #global Kd
+                '''innerGain.write(myInnerKp)
+                innerGain.write(myInnerKd)
+                outerGain.write(myOuterKp)
+                outerGain.write(myOuterKd)'''
 
                 state = 1
 
-            # Update Controller Kp
+            # Update Inner Gains
             elif state == 5:
                 state = getKp()
                 
             # Update Controller Kd
             elif state == 6:
-                state = getKd()
+                global share
+                state = getKd(share)
                 
             # E Stop
             elif state == 7:
