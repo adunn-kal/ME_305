@@ -16,21 +16,21 @@ class ClosedLoop:
         self.duty_y = 0
         self.ref = 0
         
-    def run(self, x, y, Vx, Vy, xref, yref):        
-        duty_x = self.Kp*(xref - x) - self.Kd*(Vx)
+    def run(self, x, y, Vx, Vy, xRef, yRef):        
+        duty_x = self.Kp*(xRef - x) - self.Kd*(Vx)
         
-        duty_y = self.Kp*(yref - y) - self.Kd*(Vy)
+        duty_y = self.Kp*(yRef - y) - self.Kd*(Vy)
 
-        
-        if duty_x > self.max:
-            duty_x = self.max
-        elif duty_x < -self.max:
-            duty_x = -self.max
-            
-        if duty_y > self.max:
-            duty_y = self.max
-        elif duty_y < -self.max:
-            duty_y = -self.max
+        if xRef != 0:
+            if duty_x > self.max:
+                duty_x = self.max
+            elif duty_x < -self.max:
+                duty_x = -self.max
+                
+            if duty_y > self.max:
+                duty_y = self.max
+            elif duty_y < -self.max:
+                duty_y = -self.max
             
         self.duty_x = duty_x
         self.duty_y = -duty_y

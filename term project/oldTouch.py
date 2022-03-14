@@ -116,6 +116,9 @@ class Touch:
             pass
         
         x1, y1, z = self.update()[0:3]
+        x1Offset = x1 + 80
+        y1Offset = y1 - 40
+        print(x1Offset,y1Offset)
         
         
         print("Please remove finger.")
@@ -129,7 +132,7 @@ class Touch:
             # Do nothing
             pass
         
-        x2, y2, z = self.update()[0:3]
+        x2Offset, y2Offset, z = self.update()[0:3]
         
         
         print("Please remove finger.")
@@ -144,25 +147,14 @@ class Touch:
             pass
         
         x3, y3, z = self.update()[0:3]
+        x3Offset = x3 - 80
+        y3Offset = y3 + 40
+        print(x3Offset,y3Offset)
         
         
-        # Create X matrix
-        #data = f"{x1} {y1};{x2} {y2};{x3} {y3}"
-        #X = numpy.matrix(data)
-        X = numpy.array([[x1, y1], [x2, y2], [x3, y3]])
-        
-        # Create Y matrix
-        #data = "-80 40;0 0;80 -40"
-        #Y = numpy.matrix(data)
-        Y = numpy.array([[-80, 40], [0, 0], [80, -40]])
-        
-        # Calculate B
-        Xt = numpy.transpose(X)
-        inv = numpy.linalg.inv(numpy.multiply(Xt,X))
-        combined = numpy.multiply(Xt,Y)
-        B = numpy.multiply(inv,combined)
-        print(B)
-        
+        # Get average offsets
+        self.xCal = int((x1Offset + x2Offset + x3Offset) / 3)
+        self.yCal = int((y1Offset + y2Offset + y3Offset) / 3)
         
         myLine = ''
         myLine += str(self.xCal)

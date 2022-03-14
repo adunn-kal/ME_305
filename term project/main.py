@@ -61,6 +61,8 @@ position = shares.Share(0)
 
 
 if __name__ == "__main__":
+    touchPeriod = 10000
+    
     # Instantiate motor objects
     PWM_time = Timer(3, freq = 20000)
     motor_1 = Motor(PWM_time, Pin.cpu.B4, Pin.cpu.B5, 1, 2)
@@ -72,8 +74,8 @@ if __name__ == "__main__":
     myIMU.operatingMode('IMU')
     
     #Instatiate touch objects
-    myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100)
-    myTouch.calibrate()
+    myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100, touchPeriod)
+    myTouch.checkCal()
     
     
     # Instantiate task objects
@@ -97,7 +99,7 @@ if __name__ == "__main__":
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    touchTask = taskTouch.taskTouchFcn(10000, position, velocity, myTouch)
+    touchTask = taskTouch.taskTouchFcn(touchPeriod, position, velocity, myTouch)
     
     
     ## @brief    A list of tasks.

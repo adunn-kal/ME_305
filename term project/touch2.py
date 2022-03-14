@@ -147,14 +147,12 @@ class Touch:
         
         
         # Create X matrix
-        #data = f"{x1} {y1};{x2} {y2};{x3} {y3}"
-        #X = numpy.matrix(data)
-        X = numpy.array([[x1, y1], [x2, y2], [x3, y3]])
+        data = f"{x1} {y1};{x2} {y2};{x3} {y3}"
+        X = numpy.matrix(data)
         
         # Create Y matrix
-        #data = "-80 40;0 0;80 -40"
-        #Y = numpy.matrix(data)
-        Y = numpy.array([[-80, 40], [0, 0], [80, -40]])
+        data = "-80 40;0 0;80 -40"
+        Y = numpy.matrix(data)
         
         # Calculate B
         Xt = numpy.transpose(X)

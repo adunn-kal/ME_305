@@ -65,10 +65,18 @@ def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar, posit
                 
             # Run Controller
             elif state == 2:
-                ref = outerLoop.run(position.read()[0], position.read()[1], 0, 0, 0, 0)
+                # If ball is not detected, bring back to level
+                if position.read()[0] == 0:
+                    ref = [0,0]
+                else:
+                    ref = outerLoop.run(position.read()[0], position.read()[1], 
+                                        velocity.read()[0], velocity.read()[1], 
+                                        0, 0)
                 #print(ref)
                 duty = innerLoop.run(theta.read()[0], theta.read()[1],
-                                      thetaDot.read()[0], thetaDot.read()[1], -ref[1], ref[0])
+                                      thetaDot.read()[0], thetaDot.read()[1], 
+                                      -ref[1], ref[0])
+                
                 motor_1.set_duty(duty[1])
                 motor_2.set_duty(duty[0])
                 

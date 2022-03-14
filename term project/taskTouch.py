@@ -34,10 +34,12 @@ def taskTouchFcn(period, position, velocity, myTouch):
 
             # Update Position
             if state == 0:
-                myPos = myTouch.update()
-               # myVelocity = myTouch.velocity
+                myData = myTouch.update()
+                myPos = myData[0:3]
+                myVelocity = myData[3:5]
                 position.write(myPos)
-                #velocity.write(myVeocity)
+                velocity.write(myVelocity)
+                #print(velocity.read())
 
             yield state
 
