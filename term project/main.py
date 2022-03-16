@@ -64,7 +64,7 @@ duties = shares.Share([0, 0])
 
 refs = shares.Share([0, 0])
 
-filterNum = shares.Share(3)
+filterNum = shares.Share(4)
 
 
 
@@ -75,12 +75,13 @@ if __name__ == "__main__":
     motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
     
     # Instantiate IMU object and run calibration
-    myIMU = bno055.BNO055(6000)
+    imuPeriod = 5000
+    myIMU = bno055.BNO055(imuPeriod)
     myIMU.checkCalibration()
     myIMU.operatingMode('IMU')
     
     #Instatiate touch objects
-    touchPeriod = 6000 # Time to run the update method once with 7 filtered measurements
+    touchPeriod = 5000 # Time to run the update method once with 7 filtered measurements
     myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100, touchPeriod)
     myTouch.checkCal()
     
@@ -97,12 +98,12 @@ if __name__ == "__main__":
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    imuTask = taskIMU.taskIMUFcn(6000, theta, thetaDot, myIMU)
+    imuTask = taskIMU.taskIMUFcn(imuPeriod, theta, thetaDot, myIMU)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    controllerTask = taskController.taskControllerFcn(6000, theta, thetaDot, innerGain,
+    controllerTask = taskController.taskControllerFcn(5000, theta, thetaDot, innerGain,
                                                       outerGain, sVar, position, velocity, 
                                                       motor_1, motor_2, duties, refs)
     ## @brief    The IMU task.

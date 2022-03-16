@@ -24,7 +24,7 @@ gFlag = False
 myGain = [0, 0]
 myInnerGain = [0, 0]
 myOuterGain = [0, 0]
-myFilter = 3
+myFilter = 4
 
 timeArray = array.array('f', 100*[0])
 thetaXArray = array.array('f', 100*[0])
