@@ -1,9 +1,9 @@
 '''!@file    Touch.py
-    @brief   Lab0x06 platform touchscreen control.
+    @brief   Platform touchscreen control.
     @details 
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    March 3, 2022
+    @date    March 16, 2022
 '''
 from pyb import Pin, ADC
 import os

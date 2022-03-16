@@ -1,5 +1,5 @@
 '''!@file    closedLoop.py
-    @brief   Lab0x04 control loop.
+    @brief   Creates a control loop, used for both inner and outer loop.
     @details 
     @author  Emma Jacobs
     @author  Alexander Dunn
@@ -7,11 +7,11 @@
 '''
 
 class ClosedLoop:
-    '''!@brief      Closed loop control of DC motor speed.
+    '''!@brief      Closed loop control of DC motor speed, used for both inner and outer loops.
     '''
     
     def __init__(self):
-        '''!@brief      Initialize the gain and duty.
+        '''!@brief      Initialize the loop.
         '''
         
         ## @brief shows the relationship between the magnitude of the input to

@@ -1,5 +1,5 @@
 '''!@file    controlLoop.py
-    @brief   Lab0x04 control loop.
+    @brief   Creates a control loop, used for both inner and outer loop.
     @details 
     @author  Emma Jacobs
     @author  Alexander Dunn

@@ -12,17 +12,31 @@ import os
 
 
 class BNO055:
+    '''!@brief      Creates an object for the IMU.
+        @details    Calibrates the IMU and returns the position and velocity 
+                    data.
+    '''
     
     def __init__(self, PERIOD):
+        '''!@brief      Initializes the IMU.
+        '''
+        
+        ## @brief establish I2C communication between the MCU and IMU.
         self.imu = pyb.I2C(1, pyb.I2C.CONTROLLER)
+        
+        ## @brief define the period that the IMU data is read at.
         self.period = PERIOD
         
         # Config mode
+        ## @brief puts IMU in configuration mode.
         self.imu.mem_write(0b0000, 40, 0x3D)
         time.sleep_ms(20)
         
         # Sets up initial position and differences
+        ## @brief position on the touch screen.
         self.pos = [0, 0, 0]
+        
+        ## @brief differences between .
         self.dif = [0, 0, 0]
         self.lastCount = 0
         self.dataList = []
@@ -133,20 +147,6 @@ class BNO055:
         self.pos = [roll, pitch, heading]
         self.velocity = [Vx, Vy, Vz]
         
-    
-    def position(self):
-        return self.pos
-    
-    def difference(self):
-        return self.dif
-        
-    
-    def velocity(self):
-        self.velocity[0] = 2*3.14159*(self.dif[0] / (-self.period/1000000)/4000)
-        self.velocity[1] = 2*3.14159*(self.dif[1] / (-self.period/1000000)/4000)
-        self.velocity[2] = 2*3.14159*(self.dif[2] / (-self.period/1000000)/4000)
-        
-        return self.velocity
         
 if __name__ == "__main__":
     myIMU = BNO055(10000)
