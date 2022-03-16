@@ -245,9 +245,14 @@ def getFilter():
         if myChar in {'\r', '\n'}:
             myFilter = int(bufferString)
             bufferString = ''
-            print(f"Now averaging {myFilter} touch readings")
-                 
-            state = 1
+            
+            if (myFilter > 0) and (myFilter < 8):
+                print(f"Now averaging {myFilter} touch readings")
+                state = 1
+                
+            else:
+                print("Invalid number, please choose a number between 1 and 7")
+                state = 17
                 
             return state
         
