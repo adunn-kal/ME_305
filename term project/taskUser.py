@@ -325,7 +325,7 @@ def printHelp():
         @return None.
     '''
     print("+-----------------------------------------+")
-    print("|              ME 305 LAB 0x04            |")
+    print("|            ME 305 Term Project          |")
     print("+-----------------------------------------+")
     print("|Command: h           display help message|")
     print("|Command: p             print euler angles|")
