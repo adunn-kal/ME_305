@@ -48,6 +48,7 @@ class ClosedLoop:
             @param      Vy measured y velocity.
             @param      xRef x reference position.
             @param      yRef y reference position.
+            @return     x and y duty.
         '''
         duty_x = self.Kp*(xRef - x) - self.Kd*(Vx)
         

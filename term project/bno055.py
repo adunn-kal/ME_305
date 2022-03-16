@@ -18,7 +18,8 @@ class BNO055:
     '''
     
     def __init__(self, PERIOD):
-        '''!@brief      Initializes the IMU.
+        '''!@brief  Initializes the IMU.
+            @param  PERIOD defines the period that the IMU data is read at.
         '''
         
         ## @brief establish I2C communication between the MCU and IMU.
@@ -43,6 +44,9 @@ class BNO055:
         self.velocity = [0, 0, 0]
         
     def operatingMode(self, MODE):
+        '''!@brief  Sets the operating mode for the IMU.
+            @param  MODE operating mode of the IMU.
+        '''
         if MODE == "IMU":
             address = 0b1000
         if MODE == "CAL":
@@ -51,6 +55,9 @@ class BNO055:
         self.imu.mem_write(address, 40, 0x3D)
         
     def reportCalibration(self):
+        '''!@brief      Sets the operating mode for the IMU.
+            @return     status of calibration.
+        '''
         calStat = self.imu.mem_read(1, 40, 0x35)[0]
         magStat = calStat & 0b00000011
         accStat = (calStat & 0b00001100) >> 2
@@ -60,6 +67,8 @@ class BNO055:
         return magStat, accStat, gyrStat, sysStat
     
     def writeCalibration(self):
+        '''!@brief Writes the calibration file for the IMU.
+        '''
         # Switch mode to calibration
         self.operatingMode("CAL")
         
@@ -98,6 +107,8 @@ class BNO055:
             
         
     def readCalibration(self):
+        '''!@brief  Read the calibration file for the IMU.
+        '''
         with open("IMU_cal_coeffs.txt", 'r') as file:
             data = file.readline()
         
@@ -113,6 +124,8 @@ class BNO055:
             
     
     def checkCalibration(self):
+        '''!@brief   Check if a calibration file for the IMU has already been created.
+        '''
         # Check if calibration file has been created
         if 'IMU_cal_coeffs.txt' in os.listdir():
             print("Calibration file found")
@@ -128,6 +141,8 @@ class BNO055:
     
         
     def update(self):
+        '''!@brief  Sets the operating mode for the IMU.
+        '''
         # Get data for each direction
         angles = self.imu.mem_read(6, 40, 0x1A)
         heading, roll, pitch = struct.unpack('<hhh', angles)

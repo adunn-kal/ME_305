@@ -25,15 +25,25 @@ class Encoder:
         '''
         # print('Creating encoder object')
         # Set up timer and channels
+        ## @brief intializes a timer for the encoder
         self.timer = pyb.Timer(timNum, prescaler=0, period=65535)
+        
+        ## @brief set channel 1 as a timer
         self.ch1 = self.timer.channel(1, pyb.Timer.ENC_AB, pin=chA_pin)
+        
+        ## @brief set channel 2 as a timer
         self.ch2 = self.timer.channel(2, pyb.Timer.ENC_AB, pin=chB_pin)
         
         # Sets up initial position and differences
+        
+        ## @brief position of the motor according to the encoder
         self.position = 0
+        
+        ## @brief difference between the current and last position of the motor
         self.dif = 0
+        
+        ## @brief last count on the timer
         self.lastCount = 0
-        self.dataList = []
     
     def update(self):
         '''!@brief    Updates encoder position and delta.

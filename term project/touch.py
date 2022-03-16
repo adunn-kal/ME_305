@@ -81,6 +81,7 @@ class Touch:
         
     def xScan(self):
         '''!@brief      Scan touch panel in x direction.
+            @return     x position
         '''
         global posyPin, negyPin, posxPin, negxPin
         
@@ -100,6 +101,7 @@ class Touch:
     
     def yScan(self):
         '''!@brief      Scan touch panel in y direction.
+            @return     y position
         '''
         global posyPin, negyPin, posxPin, negxPin
         
@@ -122,6 +124,7 @@ class Touch:
     def zScan(self):
         '''!@brief      Scan touch panel in z direction.
             @details    Determines if the ball is touching the platform.
+            @return     True or False if ball is touching.
         '''
         global posyPin, negyPin, posxPin, negxPin
         
@@ -145,6 +148,7 @@ class Touch:
     def touchFilter(self, num):
         '''!@brief      Filter the results from the touch panel.
             @details    Filters by taking the median of several measurements.
+            @return     Filtered x and y value.
         '''
         # Take measurements and return the median
         xList = num*[0]
@@ -173,6 +177,10 @@ class Touch:
     
     
     def update(self, num):
+        '''!@brief      Updates all the values from the touch panels.
+            @param      num number of values used to filter.
+            @return     x, y, z location of the ball and velocities for x and y direction.
+        '''
         # Check if ball is touching
         z = self.zScan()
 
