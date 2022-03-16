@@ -1,5 +1,5 @@
 '''!@file    taskUser.py
-    @brief   Lab0x02 (updated for Lab0x03) User Task.
+    @brief   User Task: shows the user the help menu and interfaces with features.
     @details Allows the user to input commands to view information regarding the motor.
     @author  Emma Jacobs
     @author  Alexander Dunn
@@ -43,6 +43,9 @@ refYArray = array.array('f', 100*[0])
 # ---------------------------------Functions-----------------------------------
     
 def getInnerKp():
+    '''!@brief prompts the user for the Kp value and retrieves it.
+        @return next state that the task needs to go back to.
+    '''
     global bufferString
     global myInnerGain
     
@@ -266,7 +269,7 @@ def getFilter():
 
 
 def printHelp():
-    '''! Prints a useful help message.
+    '''!@brief Prints a useful help message.
 
         @details Prints a series of command options with descriptions for the user.
 
