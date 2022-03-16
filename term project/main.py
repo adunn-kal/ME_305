@@ -64,6 +64,8 @@ duties = shares.Share([0, 0])
 
 refs = shares.Share([0, 0])
 
+filterNum = shares.Share(3)
+
 
 
 if __name__ == "__main__":
@@ -89,7 +91,8 @@ if __name__ == "__main__":
     #  @details  Includes name, period, and all neccesary shared variables.
     #
     userTask = taskUser.taskUserFcn(50000, theta, thetaDot, position, velocity,
-                                    innerGain, outerGain, sVar, tVar, duties, refs)
+                                    innerGain, outerGain, sVar, tVar, duties,
+                                    refs, filterNum)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
@@ -105,7 +108,8 @@ if __name__ == "__main__":
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    touchTask = taskTouch.taskTouchFcn(touchPeriod, position, velocity, myTouch, tVar)
+    touchTask = taskTouch.taskTouchFcn(touchPeriod, position, velocity,
+                                       myTouch, tVar, filterNum)
     
     
     ## @brief    A list of tasks.

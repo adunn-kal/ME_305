@@ -24,6 +24,7 @@ gFlag = False
 myGain = [0, 0]
 myInnerGain = [0, 0]
 myOuterGain = [0, 0]
+myFilter = 3
 
 timeArray = array.array('f', 100*[0])
 thetaXArray = array.array('f', 100*[0])
@@ -219,6 +220,45 @@ def getOuterKd():
         return state
 
 
+def getFilter():
+    global bufferString
+    global myFilter
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a digit
+        if myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's an enter
+        if myChar in {'\r', '\n'}:
+            myFilter = int(bufferString)
+            bufferString = ''
+            print(f"Now averaging {myFilter} touch readings")
+                 
+            state = 1
+                
+            return state
+        
+        else:
+            state = 17
+            return state
+        
+    else:
+        state = 17
+        return state
+
 
 def printHelp():
     '''! Prints a useful help message.
@@ -240,13 +280,14 @@ def printHelp():
     print("|Command: o         choose new outer gains|")
     print("|Command: w         enable/disable control|")
     print("|Command: t        recalibrate touch panel|")
+    print("|Command: f        # of readings to filter|")
     print("|Command: s                         E stop|")
     print("|Command: g                   Collect Data|")
     print("+-----------------------------------------+")
     
 
 def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
-                outerGain, sVar, tVar, duties, refs):
+                outerGain, sVar, tVar, duties, refs, filterNum):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -396,6 +437,11 @@ def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
                     elif charIn in {'k', 'K'}:
                         state = 13
                         
+                    # Change Touch Filtering
+                    elif charIn in {'f', 'F'}:
+                        print("Choose how many touch readings to average (1-7)")
+                        state = 17
+                        
                     
 # -------------------------------No Character----------------------------------                  
 
@@ -515,6 +561,12 @@ def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
                 else:
                     state = 1
                     
+            # Change Touch Filter
+            elif state == 17:
+                global myFilter
+                state = getFilter()
+                filterNum.write(myFilter)
+            
             # E Stop
             elif state == 7:
                 print("Stopping Everything")

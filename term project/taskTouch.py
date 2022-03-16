@@ -11,7 +11,7 @@ from time import ticks_us, ticks_add, ticks_diff
 balanceFlag = False
 balanceTimer = 0
 
-def taskTouchFcn(period, position, velocity, myTouch, tVar):
+def taskTouchFcn(period, position, velocity, myTouch, tVar, filterNum):
     '''! 
     '''
     ## @brief  The next time the task should run.
@@ -37,7 +37,7 @@ def taskTouchFcn(period, position, velocity, myTouch, tVar):
 
             # Update Position
             if state == 0:
-                myData = myTouch.update(7)
+                myData = myTouch.update(filterNum.read())
                 myPos = myData[0:3]
                 myVelocity = myData[3:5]
                 position.write(myPos)
