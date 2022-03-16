@@ -54,26 +54,31 @@ outerGain = shares.Share([0,0])
 #
 sVar = shares.Share(0)
 
+tVar = shares.Share(0)
+
 velocity = shares.Share(0)
 
 position = shares.Share(0)
 
+duties = shares.Share([0, 0])
+
+refs = shares.Share([0, 0])
+
 
 
 if __name__ == "__main__":
-    touchPeriod = 10000
-    
     # Instantiate motor objects
     PWM_time = Timer(3, freq = 20000)
     motor_1 = Motor(PWM_time, Pin.cpu.B4, Pin.cpu.B5, 1, 2)
     motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
     
     # Instantiate IMU object and run calibration
-    myIMU = bno055.BNO055(10000)
+    myIMU = bno055.BNO055(6000)
     myIMU.checkCalibration()
     myIMU.operatingMode('IMU')
     
     #Instatiate touch objects
+    touchPeriod = 6000 # Time to run the update method once with 7 filtered measurements
     myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100, touchPeriod)
     myTouch.checkCal()
     
@@ -83,23 +88,24 @@ if __name__ == "__main__":
     ## @brief    The user task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    userTask = taskUser.taskUserFcn(10000, theta, thetaDot, innerGain, outerGain, sVar)
+    userTask = taskUser.taskUserFcn(50000, theta, thetaDot, position, velocity,
+                                    innerGain, outerGain, sVar, tVar, duties, refs)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    imuTask = taskIMU.taskIMUFcn(10000, theta, thetaDot, myIMU)
+    imuTask = taskIMU.taskIMUFcn(6000, theta, thetaDot, myIMU)
     
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    controllerTask = taskController.taskControllerFcn(10000, theta, thetaDot, innerGain,
+    controllerTask = taskController.taskControllerFcn(6000, theta, thetaDot, innerGain,
                                                       outerGain, sVar, position, velocity, 
-                                                      motor_1, motor_2)
+                                                      motor_1, motor_2, duties, refs)
     ## @brief    The IMU task.
     #  @details  Includes name, period, and all neccesary shared variables.
     #
-    touchTask = taskTouch.taskTouchFcn(touchPeriod, position, velocity, myTouch)
+    touchTask = taskTouch.taskTouchFcn(touchPeriod, position, velocity, myTouch, tVar)
     
     
     ## @brief    A list of tasks.

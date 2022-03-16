@@ -7,6 +7,8 @@
 '''
 
 import pyb
+import array
+import os
 from time import ticks_us, ticks_add, ticks_diff
 
 ## @brief  The serial object.
@@ -16,18 +18,32 @@ ser = pyb.USB_VCP()
 bufferString = ''
 
 cFlag = False
+gFlag = False
 
-share = None
 
 myGain = [0, 0]
 myInnerGain = [0, 0]
 myOuterGain = [0, 0]
 
+timeArray = array.array('f', 100*[0])
+thetaXArray = array.array('f', 100*[0])
+thetaYArray = array.array('f', 100*[0])
+thetaDotXArray = array.array('f', 100*[0])
+thetaDotYArray = array.array('f', 100*[0])
+positionXArray = array.array('f', 100*[0])
+positionYArray = array.array('f', 100*[0])
+velocityXArray = array.array('f', 100*[0])
+velocityYArray = array.array('f', 100*[0])
+dutyXArray = array.array('f', 100*[0])
+dutyYArray = array.array('f', 100*[0])
+refXArray = array.array('f', 100*[0])
+refYArray = array.array('f', 100*[0])
+
 # ---------------------------------Functions-----------------------------------
     
-def getKp():
+def getInnerKp():
     global bufferString
-    global myGain
+    global myInnerGain
     
     # if any characters have been typed
     if ser.any():
@@ -52,10 +68,9 @@ def getKp():
         
         # If it's an enter
         if myChar in {'\r', '\n'}:
-            #myKp = float(bufferString)
-            #share.write(float(bufferString))
-            myGain[0] = float(bufferString)
+            myInnerGain[0] = float(bufferString)
             bufferString = ''
+            print(f"Kp set to {myInnerGain[0]}")
             
             # Set Kd
             print("Choose a Kd value (0 - 3)")
@@ -71,10 +86,9 @@ def getKp():
         state = 5
         return state
     
-def getKd(share):
+def getInnerKd():
     global bufferString
-    global myGain
-    global cFlag
+    global myInnerGain
     
     # if any characters have been typed
     if ser.any():
@@ -99,12 +113,9 @@ def getKd(share):
         
         # If it's an enter
         if myChar in {'\r', '\n'}:
-            #share.write(float(bufferString)/250.0)
-            #myKd = float(bufferString)
-            #myKd /= 250.0
-            myGain[1] = float(bufferString)/250.0
-            share.write(myGain)
+            myInnerGain[1] = float(bufferString)/250.0
             bufferString = ''
+            print(f"Kd set to {myInnerGain[1]*250}")
                  
             state = 1
                 
@@ -117,6 +128,96 @@ def getKd(share):
     else:
         state = 6
         return state
+    
+
+def getOuterKp():
+    global bufferString
+    global myOuterGain
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a decimal in the first place
+        if myChar == '.':
+            bufferString += myChar
+        
+        # If it's a digit
+        elif myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's an enter
+        if myChar in {'\r', '\n'}:
+            myOuterGain[0] = float(bufferString)
+            bufferString = ''
+            print(f"Kp set to {myOuterGain[0]}")
+            
+            # Set Kd
+            print("Choose a Kd value (0 - 3)")
+            state = 16 
+
+            return state
+        
+        else:
+            state = 15
+            return state
+        
+    else:
+        state = 15
+        return state
+    
+def getOuterKd():
+    global bufferString
+    global myOuterGain
+    
+    # if any characters have been typed
+    if ser.any():
+        myChar = ser.read(1).decode()
+        
+        # If it's a decimal in the first place
+        if myChar == '.':
+            bufferString += myChar
+        
+        # If it's a digit
+        elif myChar.isdigit():
+            # Append it to the string
+            bufferString += myChar
+            
+        # If it's a backspace
+        elif myChar in {'\b', '\x7f', '\x08'}:
+            if len(bufferString) > 0:
+                bufferString = bufferString.rstrip(bufferString[-1])
+             
+        # Print current string
+        print(bufferString)
+        
+        # If it's an enter
+        if myChar in {'\r', '\n'}:
+            myOuterGain[1] = float(bufferString)/250.0
+            bufferString = ''
+            print(f"Kd set to {myOuterGain[1]*250}")
+                 
+            state = 1
+                
+            return state
+        
+        else:
+            state = 16
+            return state
+        
+    else:
+        state = 16
+        return state
+
 
 
 def printHelp():
@@ -131,15 +232,21 @@ def printHelp():
     print("+-----------------------------------------+")
     print("|Command: h           display help message|")
     print("|Command: p             print euler angles|")
+    print("|Command: P            print ball position|")
     print("|Command: v       print angular velocities|")
+    print("|Command: V            print ball velocity|")
+    print("|Command: k          display current gains|")
     print("|Command: i         choose new inner gains|")
     print("|Command: o         choose new outer gains|")
     print("|Command: w         enable/disable control|")
+    print("|Command: t        recalibrate touch panel|")
     print("|Command: s                         E stop|")
+    print("|Command: g                   Collect Data|")
     print("+-----------------------------------------+")
     
 
-def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
+def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
+                outerGain, sVar, tVar, duties, refs):
     '''! The function to run the user task.
 
         @details Uses a timer to switch between different states depending on user input.
@@ -209,12 +316,20 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
                         state = 0
                     
                     # Print Euler Angles
-                    elif charIn in {'p', 'P'}:
+                    elif charIn == 'p':
                         state = 2
                         
+                    # Print Ball Position
+                    elif charIn == 'P':
+                        state = 10
+                        
                     # Print Angular Velocities
-                    elif charIn in {'v', 'V'}:
+                    elif charIn == 'v':
                         state = 3
+                        
+                    # Print Ball Velocity
+                    elif charIn == 'V':
+                        state = 11
 
                     # Enable Closed Loop Control
                     elif charIn in {'w', 'W'}:
@@ -236,69 +351,170 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
                             
                         # Only ask to set Kp if you haven't yet
                         if myInnerKp == 0:
-                            print("Gains set to Kp = 5, Kd = 1")
-                            myInnerGain = [5, 1.0/250.0]
-                            myOuterGain = [5.0, 1.0/(250.0)]
+                            myInnerGain = [8, 2.0/250.0]
+                            myOuterGain = [3.1, 1.5/(250.0)]
+                            print(f"Inner loop gains set to Kp = {myInnerGain[0]}, Kd = {myInnerGain[1]*250}")
+                            print(f"Outer loop gains set to Kp = {myOuterGain[0]}, Kd = {myOuterGain[1]*250}")
                             innerGain.write(myInnerGain)
                             outerGain.write(myOuterGain)
                             state = 1
-                            
+
                     # Update Inner Gains
                     elif charIn in {'i', 'I'}:
-                        global share
                         state = 5
-                        share = innerGain
+                        print('Update Inner Loop Gains')
                         print('Choose a Kp value (1 - 5)')
                         
                     # Update Outer Gains
                     elif charIn in {'o', 'O'}:
-                        global share
-                        state = 5
-                        share = outerGain
+                        state = 15
+                        print('Update Outer Loop Gains')
                         print('Choose a Kp value (1 - 5)')
-                            
+                    
                     # E Stop
                     elif charIn in {'s', 'S'}:
                         state = 7
                         
+                    # Touch Calibration
+                    elif charIn in {'t', 'T'}:
+                        state = 8
+                        
+                    # Get Data
+                    elif charIn in {'g', 'G'}:
+                        global gFlag, gTimer
+                        
+                        # Start Timer
+                        gTimer = ticks_us()
+                        lastTime = ticks_diff(gTimer, 100000)
+                        gFlag = True
+                        gIndex = 0
+                        
+            
+                        state = 9
+                        
+                    # Display Gains
+                    elif charIn in {'k', 'K'}:
+                        state = 13
+                        
                     
 # -------------------------------No Character----------------------------------                  
 
-                # If you were controlling, keep controlling
+                # If you were controlling
                 elif cFlag is True:
                     state = 4
+                
+                # If you were measuring, keep controlling
+                elif gFlag is True:
+                    state = 12
+                    
 
 # ---------------------------------Sub States----------------------------------
 
             # Print Euler Angles
             elif state == 2:
-                print(f"Position = {theta.read()}")
+                print(f"Euler Angles = {theta.read()}")
+                state = 1
+                
+            # Print Ball Position
+            elif state == 10:
+                print(f"Ball Position = {position.read()}")
                 state = 1
                 
             # Print Angular Velocities
             elif state == 3:
-                print(f"Velocity = {thetaDot.read()}")
+                print(f"Angular Velocity = {thetaDot.read()}")
+                state = 1
+                
+            # Print Ball Velocity
+            elif state == 11:
+                print(f"Ball Velocity = {velocity.read()}")
+                state = 1
+                
+            # Display Current Gains
+            elif state == 13:
+                print(f"Outer Loop Gains: Kp = {outerGain.read()[0]}, Kd = {outerGain.read()[1]*250}")
+                print(f"Inner Loop Gains: Kp = {innerGain.read()[0]}, Kd = {innerGain.read()[1]*250}")
+                
                 state = 1
 
             # Run Controller
             elif state == 4:
                 global myInnerGain
                 global myOuterGain
-                
-                #innerGain.write(myInnerGain)
-                #outerGain.write(myOuterGain)
 
-                state = 1
+                innerGain.write(myInnerGain)
+                outerGain.write(myOuterGain)
+                
+                if gFlag is True:
+                    state = 9
+                
+                else:
+                    state = 1
 
             # Update Inner Gains
             elif state == 5:
-                state = getKp()
+                state = getInnerKp()
                 
-            # Update Controller Kd
+            # Update Inner Kd
             elif state == 6:
-                global share
-                state = getKd(share)
+                state = getInnerKd()
                 
+            # Update Outer Gains
+            elif state == 15:
+                state = getOuterKp()
+                
+            # Update Outer Kd
+            elif state == 16:
+                state = getOuterKd()
+
+            # Calibrate Touch Panel
+            elif state == 8:
+                tVar.write(2)
+                state = 1
+            
+            # Collect Data
+            elif state == 9:
+                # Measure for 10 seconds max
+                timer = ticks_diff(ticks_us(), gTimer)
+                
+                # If timer has reached 10 seconds
+                if timer > 10*1000000:
+                    print("Done Measuring")
+                    gIndex = 0
+                    
+                    # Go to E Stop state
+                    state = 7
+                    
+                # Update all of your arrays 10 times per second
+                elif ticks_diff(ticks_us(), lastTime) > 100000:
+                    global timeArray, thetaXArray, thetaYArray, thetaDotXArray
+                    global thetaDotYArray, positionXArray, positionYArray
+                    global velocityXArray, velocityYArray, dutyXArray
+                    global dutyYArray, refXArray, refYArray
+                    
+                    timeArray[gIndex] = timer/1000000.0
+                    thetaXArray[gIndex] = theta.read()[0]
+                    thetaYArray[gIndex] = theta.read()[1]
+                    thetaDotXArray[gIndex] = thetaDot.read()[0]
+                    thetaDotYArray[gIndex] = thetaDot.read()[0]
+                    positionXArray[gIndex] = position.read()[0]
+                    positionYArray[gIndex] = position.read()[1]
+                    velocityXArray[gIndex] = velocity.read()[0]
+                    velocityYArray[gIndex] = velocity.read()[0]
+                    dutyXArray[gIndex] = duties.read()[1] # +Y motor
+                    dutyYArray[gIndex] = duties.read()[0] # -X motor
+                    refXArray[gIndex] = refs.read()[0]
+                    refYArray[gIndex] = refs.read()[1]
+                    
+                    gIndex += 1
+                    lastTime = ticks_us()
+                    print(timer/1000000.0)
+                    
+                    state = 1
+                    
+                else:
+                    state = 1
+                    
             # E Stop
             elif state == 7:
                 print("Stopping Everything")
@@ -306,6 +522,58 @@ def taskUserFcn(period, theta, thetaDot, innerGain, outerGain, sVar):
                 
                 # Quit controlling
                 cFlag = False
+                
+                # If you were taking data, write it
+                if gFlag is True:
+                    global timeArray, thetaXArray, thetaYArray, thetaDotXArray
+                    global thetaDotYArray, positionXArray, positionYArray
+                    global velocityXArray, velocityYArray, dutyXArray
+                    global dutyYArray, refXArray, refYArray
+                    
+                    gFlag = False
+                    
+                    # Print all the arrays
+                    if 'data.txt' in os.listdir():
+                        os.remove('data.txt')
+                        
+                    with open("data.txt", 'w') as file:
+                        myLine = "Time [s], thetaX [deg], thetaY [deg], thetaDotX [deg/s], thetaDotY [deg/s], X [mm], Y [mm], Vx [mm/s], Vy [mm/s], DutyX [%], DutyY [%], RefX [deg], RefY [deg]\n"
+                        file.write(myLine)
+                        print(myLine)
+                        
+                        for i in range(0, 100):
+                            if timeArray[i] > 0:
+                                myLine = f"{timeArray[i]}, "
+                                myLine += f"{thetaXArray[i]}, "
+                                myLine += f"{thetaYArray[i]}, "
+                                myLine += f"{thetaDotXArray[i]}, "
+                                myLine += f"{thetaDotYArray[i]}, "
+                                myLine += f"{positionXArray[i]}, "
+                                myLine += f"{positionYArray[i]}, "
+                                myLine += f"{velocityXArray[i]}, "
+                                myLine += f"{velocityYArray[i]}, "
+                                myLine += f"{dutyXArray[i]}, "
+                                myLine += f"{dutyYArray[i]}, "
+                                myLine += f"{refXArray[i]}, "
+                                myLine += f"{refYArray[i]}\n"
+                                
+                                file.write(myLine)
+                                print(myLine)
+                            
+                    # Clear Arrays before next reading
+                    timeArray = array.array('f', 100*[0])
+                    thetaXArray = array.array('f', 100*[0])
+                    thetaYArray = array.array('f', 100*[0])
+                    thetaDotXArray = array.array('f', 100*[0])
+                    thetaDotYArray = array.array('f', 100*[0])
+                    positionXArray = array.array('f', 100*[0])
+                    positionYArray = array.array('f', 100*[0])
+                    velocityXArray = array.array('f', 100*[0])
+                    velocityYArray = array.array('f', 100*[0])
+                    dutyXArray = array.array('f', 100*[0])
+                    dutyYArray = array.array('f', 100*[0])
+                    refXArray = array.array('f', 100*[0])
+                    refYArray = array.array('f', 100*[0])
                 
                 state = 1
 
