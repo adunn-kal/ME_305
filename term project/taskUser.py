@@ -457,9 +457,9 @@ def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
                 elif cFlag is True:
                     state = 4
                 
-                # If you were measuring, keep controlling
+                # If you were measuring, keep measuring
                 elif gFlag is True:
-                    state = 12
+                    state = 9
                     
 
 # ---------------------------------Sub States----------------------------------
