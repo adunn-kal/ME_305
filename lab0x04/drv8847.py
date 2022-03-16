@@ -16,11 +16,20 @@ class DRV8847:
             @param      faultPin If a fault is tripped, disables the motor.
             @param      timer frequency of motor.
         '''
+        
+        ## @brief timer for the motor driver.
         self.timer = Timer(timer, freq = 20000)
+        
+        ## @brief sleep pin for the motor; disables motor.
         self.sleepPin = Pin(sleepPin, mode=Pin.OUT_PP)
+        
+        ## @brief fault pin for the motor; shuts off motor when fault occurs.
         self.faultPin = faultPin
         
+        ## @brief fault interuppt for the motor.
         self.faultInt = ExtInt(self.faultPin, mode=ExtInt.IRQ_FALLING, pull=Pin.PULL_UP, callback=self.fault_cb)
+        
+        ## @brief status of the fault pin.
         self.fault = False
         
     def enable(self):

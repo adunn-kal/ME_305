@@ -37,10 +37,7 @@ class BNO055:
         ## @brief position on the touch screen.
         self.pos = [0, 0, 0]
         
-        ## @brief differences between .
-        self.dif = [0, 0, 0]
-        self.lastCount = 0
-        self.dataList = []
+        ## @brief velocity from IMU .
         self.velocity = [0, 0, 0]
         
     def operatingMode(self, MODE):
