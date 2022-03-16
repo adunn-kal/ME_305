@@ -17,11 +17,24 @@ negxPin = 0
 
 class Touch:
     def __init__(self, XpPin, XmPin, YpPin, YmPin ,width, length, period):
+        '''!@brief      initialize the touch panel.
+            @param      XpPin defines the positive x pin for the touch panel.
+            @param      XmPin defines the negative x pin for the touch panel.
+            @param      YpPin defines the positive y pin for the touch panel.
+            @param      YmPin defines the negative y pin for the touch panel.
+        '''
         global posyPin, negyPin, posxPin, negxPin
         
+        ## @brief set Xp equal to the passed in paramter for the postive x pin of the touch panel.
         self.Xp = XpPin
+        
+        ## @brief set Xm equal to the passed in paramter for the negative x pin of the touch panel.
         self.Xm = XmPin
+        
+        ## @brief set Yp equal to the passed in paramter for the postive y pin of the touch panel.
         self.Yp = YpPin
+        
+        ## @brief set Ym equal to the passed in paramter for the negative y pin of the touch panel.
         self.Ym = YmPin
         
         # Initial Setup for zScan
@@ -30,23 +43,45 @@ class Touch:
         posxPin = ADC(self.Xp)
         negxPin = Pin(self.Xm, Pin.OUT_PP)
         
+        ## @brief width of the touch panel in mm.
         self.width = width
+        
+        ## @brief length of the touch panel in mm.
         self.length = length
+        
+        ## @brief period for reading values from the touch panel.
         self.period = period
         
         # Calibration Coefficients
+        
+        ## @brief calibration coefficient
         self.Kxx = 0
+        
+        ## @brief calibration coefficient
         self.Kxy = 0
+        
+        ## @brief calibration coefficient
         self.Kyx = 0
+        
+        ## @brief calibration coefficient
         self.Kyy = 0
+        
+        ## @brief calibration coefficient
         self.x0 = 0
+        
+        ## @brief calibration coefficient
         self.y0 = 0
         
+        ## @brief previous x postion, used to calculate velocity.
         self.lastX = 0
+        
+        ## @brief previous y position, used to calculate velocity.
         self.lastY = 0
         
         
     def xScan(self):
+        '''!@brief      Scan touch panel in x direction.
+        '''
         global posyPin, negyPin, posxPin, negxPin
         
         posxPin = Pin(self.Xp, Pin.OUT_PP)
@@ -64,6 +99,8 @@ class Touch:
     
     
     def yScan(self):
+        '''!@brief      Scan touch panel in y direction.
+        '''
         global posyPin, negyPin, posxPin, negxPin
         
         posyPin = Pin(self.Yp, Pin.OUT_PP)
@@ -83,6 +120,9 @@ class Touch:
     
     
     def zScan(self):
+        '''!@brief      Scan touch panel in z direction.
+            @details    Determines if the ball is touching the platform.
+        '''
         global posyPin, negyPin, posxPin, negxPin
         
         negyPin = Pin(self.Ym, Pin.IN)
@@ -103,6 +143,9 @@ class Touch:
     
         
     def touchFilter(self, num):
+        '''!@brief      Filter the results from the touch panel.
+            @details    Filters by taking the median of several measurements.
+        '''
         # Take measurements and return the median
         xList = num*[0]
         yList = num*[0]
@@ -166,8 +209,9 @@ class Touch:
             return 0, 0, z, 0, 0
         
     def calibrate(self):
-        self.xCal = 0
-        self.yCal = 0
+        '''!@brief      Calibrate the touch panel.
+            @details    Calibrates for scale, offset, skew.
+        '''
         
         print("Please touch the top left dot.")
         while self.zScan() is False:
@@ -268,6 +312,8 @@ class Touch:
         
     
     def readCalibration(self):
+        '''!@brief      read the calibration file if existing.
+        '''
         with open("touch_cal_coeffs.txt", 'r') as file:
             data = file.readline()
         
@@ -285,6 +331,8 @@ class Touch:
         print("Device Calibrated")
     
     def checkCal(self):
+        '''!@brief      Checks if a calibration file exists.
+        '''
         # If a calibration file is detected, read from it
         if 'touch_cal_coeffs.txt' in os.listdir():
             #os.remove('touch_cal_coeffs.txt')
