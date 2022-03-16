@@ -1,6 +1,6 @@
 '''!@file    taskIMU.py
-    @brief   Lab0x02 Encoder Task.
-    @details The class that reports and records the position of the motor.
+    @brief   IMU Task: interacts with bno055 class and IMU.
+    @details The class that updates the IMU data.
     @author  Alexander Dunn
     @author  Emma Jacobs
     @date    February 03, 2022
@@ -9,18 +9,11 @@ from time import ticks_us, ticks_add, ticks_diff
 
 
 def taskIMUFcn(period, theta, thetaDot, myIMU):
-    '''! Calls the Encoder class to perform functions.
-
-        @details Uses the Encoder methods and attributes to return and perform
-        actions based on shared variables.
-        
-        @param zFlag The shared variable associated with the zero command.
-
-        @param theta The shared variable holding position information.
-
-        @param dVar The shared variable holding encoder delta information.
-
-        @return zFlag, theta, dVar.
+    '''!@brief Updates the IMU data
+        @param period how often taskIMU updates
+        @param theta angle of platform from IMU
+        @param thetaDot angular velocity from IMU
+        @param myIMU IMU object created in bno055
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.

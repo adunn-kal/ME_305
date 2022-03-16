@@ -15,35 +15,73 @@ from time import ticks_us, ticks_add, ticks_diff
 # @details Allows characters to be read from user inputs without blocking code.
 #
 ser = pyb.USB_VCP()
+
+## @brief  The string from characters in the serial buffer.
 bufferString = ''
 
+## @brief  Indicates if platform is using control (if it is attempting to balance).
 cFlag = False
+
+## @brief  Indicates if data is being measured.
 gFlag = False
 
-
+## @brief  Global variable placeholder for a gain (Kp and Kd in it)
 myGain = [0, 0]
+
+## @brief  Global variables that are placeholders for inner loop Kp and Kd.
+#  @details Writing this to the shared variables.
 myInnerGain = [0, 0]
+
+## @brief  Global variables that are placeholders for outer loop Kp and Kd.
+#  @details Writing this to the shared variables.
 myOuterGain = [0, 0]
+
+## @brief number of measurements being used to filter.
 myFilter = 4
 
+## @brief  Time stamps stored for recorded data
 timeArray = array.array('f', 100*[0])
+
+## @brief  Angles in x direction stored for recorded data
 thetaXArray = array.array('f', 100*[0])
+
+## @brief  Angles in y direction stored for recorded data
 thetaYArray = array.array('f', 100*[0])
+
+## @brief  Angular velocity in x direction stored for recorded data
 thetaDotXArray = array.array('f', 100*[0])
+
+## @brief  Angular velocity in y direction stored for recorded data
 thetaDotYArray = array.array('f', 100*[0])
+
+## @brief  Position in x direction of ball stored for recorded data
 positionXArray = array.array('f', 100*[0])
+
+## @brief  Position in y direction of ball stored for recorded data
 positionYArray = array.array('f', 100*[0])
+
+## @brief   Velocity in x direction of ball stored for recorded data
 velocityXArray = array.array('f', 100*[0])
+
+## @brief  Velocity in y direction of ball stored for recorded data
 velocityYArray = array.array('f', 100*[0])
+
+## @brief  Duty of x direction motor stored for recorded data
 dutyXArray = array.array('f', 100*[0])
+
+## @brief  Duty of y direction motor stored for recorded data
 dutyYArray = array.array('f', 100*[0])
+
+## @brief  Reference position in x direction of ball stored for recorded data
 refXArray = array.array('f', 100*[0])
+
+## @brief  Reference position in y direction of ball stored for recorded data
 refYArray = array.array('f', 100*[0])
 
 # ---------------------------------Functions-----------------------------------
     
 def getInnerKp():
-    '''!@brief prompts the user for the Kp value and retrieves it.
+    '''!@brief prompts the user for the inner Kp value and retrieves it.
         @return next state that the task needs to go back to.
     '''
     global bufferString
@@ -91,6 +129,9 @@ def getInnerKp():
         return state
     
 def getInnerKd():
+    '''!@brief prompts the user for the inner Kd value and retrieves it.
+        @return next state that the task needs to go back to.
+    '''
     global bufferString
     global myInnerGain
     
@@ -135,6 +176,9 @@ def getInnerKd():
     
 
 def getOuterKp():
+    '''!@brief prompts the user for the outer Kp value and retrieves it.
+        @return next state that the task needs to go back to.
+    '''
     global bufferString
     global myOuterGain
     
@@ -180,6 +224,9 @@ def getOuterKp():
         return state
     
 def getOuterKd():
+    '''!@brief prompts the user for the outer Kd value and retrieves it.
+        @return next state that the task needs to go back to.
+    '''
     global bufferString
     global myOuterGain
     
@@ -224,6 +271,8 @@ def getOuterKd():
 
 
 def getFilter():
+    '''!@brief Updates how touch readings are averaged (between 1-7).
+    '''
     global bufferString
     global myFilter
     
@@ -289,8 +338,8 @@ def printHelp():
     print("|Command: w         enable/disable control|")
     print("|Command: t        recalibrate touch panel|")
     print("|Command: f        # of readings to filter|")
-    print("|Command: s                         E stop|")
     print("|Command: g                   Collect Data|")
+    print("|Command: s                         E stop|")
     print("+-----------------------------------------+")
     
 
@@ -304,19 +353,27 @@ def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
 
         @param period The period in uS of the task.
 
-        @param zFlag The shared variable associated with the zero command.
+        @param theta The angle of the platform.
 
-        @param gFlag The shared variable associated with the data collection command.
+        @param thetaDot The angular velocity of the platform.
 
-        @param pVar The shared variable holding position information.
+        @param position The position of the ball.
 
-        @param dVar The shared variable holding encoder delta information.
+        @param velocity The velocity of the ball.
 
-        @param gTime The shared variable holding data collection timing information.
+        @param innerGain The gains for the inner control loop.
         
-        @param gArray The shared variable holding collected data.
+        @param outerGain The gains for the out control loop.
         
-        @param gTime The shared variable holding collected times.
+        @param sVar The shared variable that tells task controller which state to go.
+        
+        @param tVar The shared variable that tells task touch which state.
+        
+        @param duties Shared variable for task control for duty cycles.
+        
+        @param refs The shared reference position variable.
+        
+        @param filterNum The number of measurements used to filter the data.
 
         @return None.
     '''
@@ -402,8 +459,6 @@ def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
                         if myInnerKp == 0:
                             myInnerGain = [8, 2.0/250.0]
                             myOuterGain = [3.1, 1.5/(250.0)]
-                            print(f"Inner loop gains set to Kp = {myInnerGain[0]}, Kd = {myInnerGain[1]*250}")
-                            print(f"Outer loop gains set to Kp = {myOuterGain[0]}, Kd = {myOuterGain[1]*250}")
                             innerGain.write(myInnerGain)
                             outerGain.write(myOuterGain)
                             state = 1

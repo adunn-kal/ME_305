@@ -1,9 +1,9 @@
 '''!@file    taskTouch.py
-    @brief    Task.
-    @details The class that reports and records the position of the motor.
+    @brief   Touch Task: interacts with touch class and the touch panel.
+    @details The class that reports and records the position of anything touching the platform.
     @author  Alexander Dunn
     @author  Emma Jacobs
-    @date    February 03, 2022
+    @date    March 16, 2022
  '''
 from time import ticks_us, ticks_add, ticks_diff
 
@@ -12,7 +12,7 @@ balanceFlag = False
 balanceTimer = 0
 
 def taskTouchFcn(period, position, velocity, myTouch, tVar, filterNum):
-    '''! 
+    '''!@brief updates reading off touch panel.
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.

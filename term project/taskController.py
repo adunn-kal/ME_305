@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''!@file    taskController.py
-    @brief   Lab0x02 Encoder Task.
+    @brief   Controller task: creates the inner and outer loop control.
     @details The class that reports and records the position of the motor.
     @author  Alexander Dunn
     @author  Emma Jacobs
@@ -22,18 +22,12 @@ m2Offset = 0 # +y motor
 
 def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar,
                       position, velocity, motor_1, motor_2, duties, refs):
-    '''! Calls the Encoder class to perform functions.
+    '''!@brief Calls the controller class to perform functions.
 
         @details Uses the Encoder methods and attributes to return and perform
         actions based on shared variables.
-        
-        @param zFlag The shared variable associated with the zero command.
+        @param
 
-        @param pVar The shared variable holding position information.
-
-        @param dVar The shared variable holding encoder delta information.
-
-        @return zFlag, pVar, dVar.
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.
