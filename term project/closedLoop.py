@@ -11,10 +11,13 @@ class ClosedLoop:
     def __init__(self):
         self.Kp = 0
         self.Kd = 0
-        self.max = 30
+        self.max = 100
         self.duty_x = 0
         self.duty_y = 0
         self.ref = 0
+        
+    def setMax(self, maximum):
+        self.max = maximum
         
     def run(self, x, y, Vx, Vy, xRef, yRef):        
         duty_x = self.Kp*(xRef - x) - self.Kd*(Vx)

@@ -11,8 +11,17 @@ import closedLoop
 
 innerLoop = closedLoop.ClosedLoop()
 outerLoop = closedLoop.ClosedLoop()
+innerLoop.setMax(45)
+outerLoop.setMax(45)
 
-def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar, position, velocity, motor_1, motor_2):
+pitchOffset = 0
+rollOffset = 0
+
+m1Offset = 0 # -x motor
+m2Offset = 0 # +y motor
+
+def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar,
+                      position, velocity, motor_1, motor_2, duties, refs):
     '''! Calls the Encoder class to perform functions.
 
         @details Uses the Encoder methods and attributes to return and perform
@@ -66,19 +75,30 @@ def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar, posit
             # Run Controller
             elif state == 2:
                 # If ball is not detected, bring back to level
-                if position.read()[0] == 0:
+                if position.read()[2] is False:
                     ref = [0,0]
+                    innerLoop.set_Kp(0.45*innerGain.read()[0])
+                    innerLoop.set_Kd(0.45*innerGain.read()[1])
+                    innerLoop.setMax(30)
+                    
                 else:
+                    innerLoop.set_Kp(innerGain.read()[0])
+                    innerLoop.set_Kd(innerGain.read()[1])
+                    innerLoop.setMax(50)
                     ref = outerLoop.run(position.read()[0], position.read()[1], 
                                         velocity.read()[0], velocity.read()[1], 
                                         0, 0)
+                    
                 #print(ref)
-                duty = innerLoop.run(theta.read()[0], theta.read()[1],
+                duty = innerLoop.run(theta.read()[0]-pitchOffset, theta.read()[1]-rollOffset,
                                       thetaDot.read()[0], thetaDot.read()[1], 
                                       -ref[1], ref[0])
                 
-                motor_1.set_duty(duty[1])
-                motor_2.set_duty(duty[0])
+                motor_1.set_duty(duty[1] + m1Offset)
+                motor_2.set_duty(duty[0] + m2Offset)
+                
+                duties.write([motor_1.duty, motor_2.duty])
+                refs.write(ref)
                 
                 state = 0
             

@@ -8,7 +8,10 @@
 from time import ticks_us, ticks_add, ticks_diff
 
 
-def taskTouchFcn(period, position, velocity, myTouch):
+balanceFlag = False
+balanceTimer = 0
+
+def taskTouchFcn(period, position, velocity, myTouch, tVar):
     '''! 
     '''
     ## @brief  The next time the task should run.
@@ -34,12 +37,48 @@ def taskTouchFcn(period, position, velocity, myTouch):
 
             # Update Position
             if state == 0:
-                myData = myTouch.update()
+                myData = myTouch.update(7)
                 myPos = myData[0:3]
                 myVelocity = myData[3:5]
                 position.write(myPos)
                 velocity.write(myVelocity)
-                #print(velocity.read())
+                
+                if tVar.read() == 2:
+                    state = 2
+                
+                else:
+                    state = 1
+                
+            # Balance Timer
+            if state == 1:
+                global balanceFlag
+                global balanceTimer
+                
+                # If ball begins balancing
+                if balanceFlag is False:
+                    if myData[2] is True:
+                        # Start the timer
+                        balanceTimer = ticks_us()
+                        balanceFlag = True
+                
+                else:
+                    # If ball falls off
+                    if myData[2] is False:
+                        # Print elapsed time
+                        myTime = ticks_diff(ticks_us(), balanceTimer)/1000000.0
+                        if myTime > 0.3:
+                            print(f"Ball balanced for {round(myTime, 2)} seconds")
+                        balanceFlag = False
+                        
+                state = 0
+            
+            # Update calibration file
+            if state == 2:
+                myTouch.calibrate()
+                
+                tVar.write(0)
+                state = 0
+                        
 
             yield state
 

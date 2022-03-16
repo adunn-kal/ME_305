@@ -8,31 +8,49 @@
 from pyb import Pin, ADC
 import os
 from ulab import numpy
-#from utime import ticks_us, ticks_diff, sleep_us
+from utime import ticks_us, ticks_diff, sleep_us
+
+posyPin = 0
+negyPin = 0
+posxPin = 0
+negxPin = 0
 
 class Touch:
     def __init__(self, XpPin, XmPin, YpPin, YmPin ,width, length, period):
+        global posyPin, negyPin, posxPin, negxPin
+        
         self.Xp = XpPin
         self.Xm = XmPin
         self.Yp = YpPin
         self.Ym = YmPin
         
+        # Initial Setup for zScan
+        posyPin = Pin(self.Yp, Pin.OUT_PP)
+        negyPin = Pin(self.Ym, Pin.IN)
+        posxPin = ADC(self.Xp)
+        negxPin = Pin(self.Xm, Pin.OUT_PP)
+        
         self.width = width
         self.length = length
         self.period = period
         
-        self.xCal = 0
-        self.yCal = 0
+        # Calibration Coefficients
+        self.Kxx = 0
+        self.Kxy = 0
+        self.Kyx = 0
+        self.Kyy = 0
+        self.x0 = 0
+        self.y0 = 0
         
         self.lastX = 0
         self.lastY = 0
         
         
     def xScan(self):
+        global posyPin, negyPin, posxPin, negxPin
+        
         posxPin = Pin(self.Xp, Pin.OUT_PP)
-        negxPin = Pin(self.Xm, Pin.OUT_PP)
         posyPin = ADC(self.Yp)
-        negyPin = Pin(self.Ym, Pin.IN)
         
         negxPin.low()
         posxPin.high()
@@ -40,12 +58,14 @@ class Touch:
         Vx = posyPin.read()
         
         #conversion into x
-        x = ((Vx/4096)*self.length)-(self.length/2) - self.xCal
+        x = ((Vx/4096)*self.length)-(self.length/2)
         
         return x
     
     
     def yScan(self):
+        global posyPin, negyPin, posxPin, negxPin
+        
         posyPin = Pin(self.Yp, Pin.OUT_PP)
         negyPin = Pin(self.Ym, Pin.OUT_PP)
         posxPin = ADC(self.Xp)
@@ -57,15 +77,15 @@ class Touch:
         Vy = posxPin.read()
         
         #conversion into x
-        y = ((Vy/4096)*self.width)-(self.width/2) - self.yCal
+        y = ((Vy/4096)*self.width)-(self.width/2)
         
         return y
     
     
     def zScan(self):
-        posyPin = Pin(self.Yp, Pin.OUT_PP)
+        global posyPin, negyPin, posxPin, negxPin
+        
         negyPin = Pin(self.Ym, Pin.IN)
-        posxPin = ADC(self.Xp)
         negxPin = Pin(self.Xm, Pin.OUT_PP)
         
         negxPin.low()
@@ -80,27 +100,66 @@ class Touch:
             return True
         else:
             return False
+    
         
-    def update(self):
+    def touchFilter(self, num):
+        # Take measurements and return the median
+        xList = num*[0]
+        yList = num*[0]
+        for i in range(0,num):
+            # Check if ball is touching
+            z = self.zScan()
+            
+            # If ball is touching, update position and velocity
+            if z:
+                # Update position
+                x = self.xScan()
+                y = self.yScan()
+                
+                x = self.Kxx*x + self.Kxy*y + self.x0
+                y = self.Kyy*y + self.Kyx*x + self.y0
+                
+                xList[i] = x
+                yList[i] = y
+                
+            else:
+                xList[i] = self.lastX
+                yList[i] = self.lastY
+                
+        return numpy.median(numpy.ndarray(xList)), numpy.median(numpy.ndarray(yList))
+    
+    
+    def update(self, num):
         # Check if ball is touching
         z = self.zScan()
-        
+
         # If ball is touching, update position and velocity
         if z:
-            # Update position
+            '''# Update position
             x = self.xScan()
             y = self.yScan()
             
-            print(f"({x}, {y})")
+            x = self.Kxx*x + self.Kxy*y + self.x0
+            y = self.Kyy*y + self.Kyx*x + self.y0'''
+            
+            x,y = self.touchFilter(num)
+            
+            #print(f"({x}, {y})")
             
             # Update velocity
             vX = (10**6)*(x-self.lastX)/self.period
             vY = (10**6)*(y-self.lastY)/self.period
             
+            # Get rid of wonky velocity values
+            if (abs(vX) > 1000) or (abs(vY) > 1000):
+                vX, vY = 0, 0
+            
+            #print(f"({vX}, {vY})")
+            
             self.lastX = x
             self.lastY = y
             
-            return x,y,z, vX, vY
+            return x, y, z, vX, vY
         
         # If ball is not touching, ignore stuff
         else:
@@ -115,7 +174,8 @@ class Touch:
             # Do nothing
             pass
         
-        x1, y1, z = self.update()[0:3]
+        x1 = self.xScan()
+        y1 = self.yScan()
         
         
         print("Please remove finger.")
@@ -123,59 +183,91 @@ class Touch:
             # Do nothing
             pass
         
+        print("Please touch bottom left dot.")
+        while self.zScan() is False:
+            # Do nothing
+            pass
+        
+        x4 = self.xScan()
+        y4 = self.yScan()
+        
+        print("Please remove finger.")
+        while self.zScan() is True:
+            # Do nothing
+            pass
         
         print("Touch center.")
         while self.zScan() is False:
             # Do nothing
             pass
         
-        x2, y2, z = self.update()[0:3]
-        
+        x2 = self.xScan()
+        y2 = self.yScan()
         
         print("Please remove finger.")
         while self.zScan() is True:
             # Do nothing
             pass
         
+        print("Please touch top right dot.")
+        while self.zScan() is False:
+            # Do nothing
+            pass
+        
+        x5 = self.xScan()
+        y5 = self.yScan()
+        
+        print("Please remove finger.")
+        while self.zScan() is True:
+            # Do nothing
+            pass
         
         print("Please touch bottom right dot.")
         while self.zScan() is False:
             # Do nothing
             pass
         
-        x3, y3, z = self.update()[0:3]
+        x3 = self.xScan()
+        y3 = self.yScan()
         
         
         # Create X matrix
         #data = f"{x1} {y1};{x2} {y2};{x3} {y3}"
         #X = numpy.matrix(data)
-        X = numpy.array([[x1, y1], [x2, y2], [x3, y3]])
+        X = numpy.array([[x1, y1, 1], [x2, y2, 1], [x3, y3, 1], [x4, y4, 1], [x5, y5, 1]])
         
         # Create Y matrix
         #data = "-80 40;0 0;80 -40"
         #Y = numpy.matrix(data)
-        Y = numpy.array([[-80, 40], [0, 0], [80, -40]])
+        Y = numpy.array([[-80, 40], [0, 0], [80, -40], [-80, -40], [80, 40]])
         
         # Calculate B
-        Xt = numpy.transpose(X)
-        inv = numpy.linalg.inv(numpy.multiply(Xt,X))
-        combined = numpy.multiply(Xt,Y)
-        B = numpy.multiply(inv,combined)
-        print(B)
+        Xt = X.transpose()
+        inv = numpy.linalg.inv(numpy.dot(Xt,X))
+        combined = numpy.dot(Xt,Y)
+        B = numpy.dot(inv,combined)
+        
+        self.Kxx = B[0][0]
+        self.Kyx = B[0][1]
+        self.Kxy = B[1][0]
+        self.Kyy = B[1][1]
+        self.x0 = B[2][0]
+        self.y0 = B[2][1]
         
         
-        myLine = ''
-        myLine += str(self.xCal)
-        myLine += ', '
-        myLine += str(self.yCal)
+        myLine = f"{self.Kxx}, {self.Kyx}, {self.Kxy}, {self.Kyy}, {self.x0}, {self.y0}"
         
+        # Check if file already exists, clear it and make a new one
+        if 'touch_cal_coeffs.txt' in os.listdir():
+            os.remove('touch_cal_coeffs.txt')
+            
         with open("touch_cal_coeffs.txt", 'w') as file:
             file.write(myLine)
         
         print("Fully Calibrated!")
         
     
-    def updateCalibration(self):
+    def readCalibration(self):
         with open("touch_cal_coeffs.txt", 'r') as file:
             data = file.readline()
         
@@ -183,8 +275,12 @@ class Touch:
         data = data.split(', ')
 
         # Write each value to the IMU
-        self.xCal = int(data[0])
-        self.yCal = int(data[1])
+        self.Kxx = float(data[0])
+        self.Kyx = float(data[1])
+        self.Kxy = float(data[2])
+        self.Kyy = float(data[3])
+        self.x0 = float(data[4])
+        self.y0 = float(data[5])
             
         print("Device Calibrated")
     
@@ -192,19 +288,19 @@ class Touch:
         # If a calibration file is detected, read from it
         if 'touch_cal_coeffs.txt' in os.listdir():
             #os.remove('touch_cal_coeffs.txt')
-            self.updateCalibration()
+            self.readCalibration()
         # If no file is detected, make one
         else:
             self.calibrate()
     
 
 if __name__ == "__main__":
-    location = Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100)
+    location = Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100, 10000)
     
-    location.calibrate()
+    #location.calibrate()
     
-    print(f"{location.xCal}, {location.yCal}")
-    '''
+    #print(f"{location.xCal}, {location.yCal}")
+   
     timerStart = ticks_us()
         
     for i in range(0,1000):
@@ -213,7 +309,7 @@ if __name__ == "__main__":
             location.yScan()
     
     current = ticks_us()
-    print(ticks_diff(current,  timerStart)/1000)
+    print(f"Average time per XYZ scan: {ticks_diff(current,  timerStart)/1000} uSeconds")
     
     timerStart = ticks_us()
         
@@ -221,8 +317,8 @@ if __name__ == "__main__":
         location.update()
     
     current = ticks_us()
-    print(ticks_diff(current,  timerStart)/1000)
-    '''
+    print(f"Average time per Update: {ticks_diff(current,  timerStart)/1000} uSeconds")
+    
     
     #while True:
        #print (location.update())
