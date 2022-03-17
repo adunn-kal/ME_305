@@ -1,5 +1,5 @@
 '''!@file    BNO055.py
-    @brief   Lab0x05 IMU driver.
+    @brief   IMU driver.
     @details 
     @author  Emma Jacobs
     @author  Alexander Dunn

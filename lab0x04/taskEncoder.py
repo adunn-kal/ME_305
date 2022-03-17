@@ -1,5 +1,5 @@
 '''!@file    taskEncoder.py
-    @brief   Lab0x02 Encoder Task.
+    @brief   Encoder Task.
     @details The class that reports and records the position of the motor.
     @author  Alexander Dunn
     @author  Emma Jacobs
