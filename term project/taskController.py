@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 '''!@file    taskController.py
     @brief   Controller task: creates the inner and outer loop control.
     @details The class that reports and records the position of the motor.
@@ -22,11 +21,20 @@ m2Offset = 0 # +y motor
 
 def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar,
                       position, velocity, motor_1, motor_2, duties, refs):
-    '''!@brief Calls the controller class to perform functions.
-
-        @details Uses the Encoder methods and attributes to return and perform
-        actions based on shared variables.
-        @param
+    '''!@brief Calls the controller class to perform.
+ 
+        @param period how often the class runs
+        @param theta angle of the platform
+        @param thetaDot angular velocity of the platform
+        @param innerGain gains of the inner control loop
+        @param outerGain gains of the outer control loop
+        @param sVar the shared state variable
+        @param position location of the ball on touch panel
+        @param velocity velocity of the ball
+        @param motor_1 object for the x motor
+        @param motor_2 object for the y motor
+        @param duties duty cycles
+        @param refs reference values for the ball
 
     '''
     ## @brief  The next time the task should run.
