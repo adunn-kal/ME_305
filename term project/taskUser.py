@@ -3,7 +3,7 @@
     @details Allows the user to input commands to view information regarding the motor.
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    February 03, 2022
+    @date    March 18, 2022
 '''
 
 import pyb
@@ -11,8 +11,8 @@ import array
 import os
 from time import ticks_us, ticks_add, ticks_diff
 
-## @brief  The serial object.
-# @details Allows characters to be read from user inputs without blocking code.
+## @brief  Establishes serial communication with PuTTY.
+#  @details Allows characters to be read from user inputs without blocking code.
 #
 ser = pyb.USB_VCP()
 
@@ -36,7 +36,7 @@ myInnerGain = [0, 0]
 #  @details Writing this to the shared variables.
 myOuterGain = [0, 0]
 
-## @brief number of measurements being used to filter.
+## @brief number of measurements being used to filter touch panel data.
 myFilter = 4
 
 ## @brief  Time stamps stored for recorded data
@@ -81,14 +81,16 @@ refYArray = array.array('f', 100*[0])
 # ---------------------------------Functions-----------------------------------
     
 def getInnerKp():
-    '''!@brief prompts the user for the inner Kp value and retrieves it.
-        @return next state that the task needs to go back to.
+    '''!@brief Prompts the user for the inner Kp value and retrieves it.
+        @details Runs cooperatively with other tasks.
+        @return Next state that the task needs to go back to.
     '''
     global bufferString
     global myInnerGain
     
     # if any characters have been typed
     if ser.any():
+        ## @brief the most recent character read from the serial buffer.
         myChar = ser.read(1).decode()
         
         # If it's a decimal in the first place
@@ -130,6 +132,7 @@ def getInnerKp():
     
 def getInnerKd():
     '''!@brief prompts the user for the inner Kd value and retrieves it.
+        @details Runs cooperatively with other tasks.
         @return next state that the task needs to go back to.
     '''
     global bufferString
@@ -177,6 +180,7 @@ def getInnerKd():
 
 def getOuterKp():
     '''!@brief prompts the user for the outer Kp value and retrieves it.
+        @details Runs cooperatively with other tasks.
         @return next state that the task needs to go back to.
     '''
     global bufferString
@@ -225,6 +229,7 @@ def getOuterKp():
     
 def getOuterKd():
     '''!@brief prompts the user for the outer Kd value and retrieves it.
+        @details Runs cooperatively with other tasks.
         @return next state that the task needs to go back to.
     '''
     global bufferString
@@ -271,7 +276,9 @@ def getOuterKd():
 
 
 def getFilter():
-    '''!@brief Updates how touch readings are averaged (between 1-7).
+    '''!@brief Updates how touch readings are averaged (between 1-7)
+        @details Runs cooperatively with other tasks
+        @return next state that the task needs to go back to.
     '''
     global bufferString
     global myFilter
@@ -319,9 +326,7 @@ def getFilter():
 
 def printHelp():
     '''!@brief Prints a useful help message.
-
         @details Prints a series of command options with descriptions for the user.
-
         @return None.
     '''
     print("+-----------------------------------------+")
@@ -345,45 +350,28 @@ def printHelp():
 
 def taskUserFcn(period, theta, thetaDot, position, velocity, innerGain,
                 outerGain, sVar, tVar, duties, refs, filterNum):
-    '''! The function to run the user task.
-
+    '''!@brief The function to run the user task.
         @details Uses a timer to switch between different states depending on user input.
                  Works in conjunction with the encoder task.
-
-
         @param period The period in uS of the task.
-
         @param theta The angle of the platform.
-
         @param thetaDot The angular velocity of the platform.
-
         @param position The position of the ball.
-
         @param velocity The velocity of the ball.
-
         @param innerGain The gains for the inner control loop.
-        
         @param outerGain The gains for the out control loop.
-        
         @param sVar The shared variable that tells task controller which state to go.
-        
         @param tVar The shared variable that tells task touch which state.
-        
         @param duties Shared variable for task control for duty cycles.
-        
         @param refs The shared reference position variable.
-        
         @param filterNum The number of measurements used to filter the data.
-
         @return None.
     '''
     ## @brief  The next time the task should run.
-    # @details In uS.
-    #
+    #  @details In uS.
     nextTime = ticks_add(ticks_us(), period)
     
     ## @brief  The current state.
-    #
     state = 0
     
     global bufferString

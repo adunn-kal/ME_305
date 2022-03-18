@@ -1,6 +1,6 @@
 '''!@file    taskTouch.py
     @brief   Touch Task: interacts with touch class and the touch panel.
-    @details The class that reports and records the position of anything touching the platform.
+    @details The class that reports and records the linear position and velocity of anything touching the platform.
     @author  Alexander Dunn
     @author  Emma Jacobs
     @date    March 16, 2022

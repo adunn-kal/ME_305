@@ -3,7 +3,7 @@
     @details The class that updates the IMU data.
     @author  Alexander Dunn
     @author  Emma Jacobs
-    @date    February 03, 2022
+    @date    March 18, 2022
  '''
 from time import ticks_us, ticks_add, ticks_diff
 

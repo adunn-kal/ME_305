@@ -1,13 +1,18 @@
 '''!@file    closedLoop.py
     @brief   Creates a control loop, used for both inner and outer loop.
-    @details 
+    @details Runs PD control.
     @author  Emma Jacobs
     @author  Alexander Dunn
-    @date    February 03, 2022
+    @date    March 18, 2022
 '''
 
 class ClosedLoop:
-    '''!@brief      Closed loop control of DC motor speed, used for both inner and outer loops.
+    '''!@brief      Closed loop control for both inner and outer loops.
+        @details    Inner loop: takes reference angular position and compares to measured 
+                    angular position and velocity to set duty cycles for motors.
+                    Outer loop: takes reference linear position and compares to measured 
+                            linear position and velocity to set ref angular position
+                            for inner loop.
     '''
     
     def __init__(self):
@@ -35,20 +40,19 @@ class ClosedLoop:
         self.ref = 0
         
     def setMax(self, maximum):
-        '''!@brief      Set the maximum, used in the duty cycle,
+        '''!@brief      Set the maximum saturation point.
         '''
-        
         self.max = maximum
         
     def run(self, x, y, Vx, Vy, xRef, yRef): 
         '''!@brief      Use feedback to set the duty cycle.
-            @param      x measured x position.
-            @param      y measured y position.
-            @param      Vx measured x velocity.
-            @param      Vy measured y velocity.
-            @param      xRef x reference position.
-            @param      yRef y reference position.
-            @return     x and y duty.
+            @param      x measured x angular or linear position.
+            @param      y measured y angular or linear position.
+            @param      Vx measured x angular or linear velocity.
+            @param      Vy measured y angular or linear velocity.
+            @param      xRef x reference angular or linear position.
+            @param      yRef y reference angular or linear position.
+            @return     x and y reference position or duty.
         '''
         duty_x = self.Kp*(xRef - x) - self.Kd*(Vx)
         
@@ -71,13 +75,13 @@ class ClosedLoop:
         return [self.duty_x, self.duty_y]
     
     def set_Kp(self, gain):
-        '''!@brief      Sets Kp equal to gain.
+        '''!@brief      Updates Kp.
             @param      Kp gain.
         '''
         self.Kp = gain
         
     def set_Kd(self, gain):
-        '''!@brief      Sets Kd equal to gain.
+        '''!@brief      Updates Kd.
             @param      Kd gain.
         '''
         self.Kd = gain

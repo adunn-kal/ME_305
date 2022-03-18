@@ -1,6 +1,5 @@
 '''!@file    BNO055.py
     @brief   IMU driver.
-    @details 
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    February 24, 2022
@@ -13,7 +12,7 @@ import os
 
 class BNO055:
     '''!@brief      Creates an object for the IMU.
-        @details    Calibrates the IMU and returns the position and velocity 
+        @details    Calibrates the IMU and returns the angular position and velocity 
                     data.
     '''
     
@@ -29,7 +28,6 @@ class BNO055:
         self.period = PERIOD
         
         # Config mode
-        ## @brief puts IMU in configuration mode.
         self.imu.mem_write(0b0000, 40, 0x3D)
         time.sleep_ms(20)
         
@@ -105,6 +103,7 @@ class BNO055:
         
     def readCalibration(self):
         '''!@brief  Read the calibration file for the IMU.
+            @details Calibrate IMU from an existing text file.
         '''
         with open("IMU_cal_coeffs.txt", 'r') as file:
             data = file.readline()
@@ -138,7 +137,7 @@ class BNO055:
     
         
     def update(self):
-        '''!@brief  Sets the operating mode for the IMU.
+        '''!@brief  Updates the angular position and velocity from IMU.
         '''
         # Get data for each direction
         angles = self.imu.mem_read(6, 40, 0x1A)

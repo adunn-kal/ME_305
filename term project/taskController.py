@@ -1,14 +1,17 @@
 '''!@file    taskController.py
-    @brief   Controller task: creates the inner and outer loop control.
-    @details The class that reports and records the position of the motor.
+    @brief   Controller task: runs the inner and outer loop control.
+    @details Implements closed loop PD control.
     @author  Alexander Dunn
     @author  Emma Jacobs
-    @date    February 03, 2022
+    @date    March 18, 2022
  '''
 from time import ticks_us, ticks_add, ticks_diff
 import closedLoop
 
+## @brief object for inner loop control
 innerLoop = closedLoop.ClosedLoop()
+
+## @brief object for outerloop control
 outerLoop = closedLoop.ClosedLoop()
 innerLoop.setMax(45)
 outerLoop.setMax(45)
@@ -22,8 +25,7 @@ m2Offset = 0 # +y motor
 def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar,
                       position, velocity, motor_1, motor_2, duties, refs):
     '''!@brief Calls the controller class to perform.
- 
-        @param period how often the class runs
+        @param period how often the task runs in us
         @param theta angle of the platform
         @param thetaDot angular velocity of the platform
         @param innerGain gains of the inner control loop
@@ -35,7 +37,6 @@ def taskControllerFcn(period, theta, thetaDot, innerGain, outerGain, sVar,
         @param motor_2 object for the y motor
         @param duties duty cycles
         @param refs reference values for the ball
-
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.

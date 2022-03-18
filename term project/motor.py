@@ -1,8 +1,8 @@
 from pyb import Pin, Timer
 
 class Motor:
-    '''!@brief      Defines a motor.
-        @details    Duty cycle can be set using ref/ set_duty().
+    '''!@brief      Defines a motor object.
+        @details    Duty cycle can be set using set_duty().
     '''
     
     def __init__(self, PWM_time, IN1_pin, IN2_pin, ch1, ch2):

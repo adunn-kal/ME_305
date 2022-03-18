@@ -1,6 +1,6 @@
-'''!@file    Touch.py
-    @brief   Platform touchscreen control.
-    @details 
+'''!@file    touch.py
+    @brief   Driver class for the touch panel.
+    @details Updates linear position and velocity.
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    March 16, 2022
@@ -16,8 +16,10 @@ posxPin = 0
 negxPin = 0
 
 class Touch:
+    '''!@brief      Creates an object for the touch panel.
+    '''
     def __init__(self, XpPin, XmPin, YpPin, YmPin ,width, length, period):
-        '''!@brief      initialize the touch panel.
+        '''!@brief      Initialize the touch panel.
             @param      XpPin defines the positive x pin for the touch panel.
             @param      XmPin defines the negative x pin for the touch panel.
             @param      YpPin defines the positive y pin for the touch panel.
@@ -66,10 +68,10 @@ class Touch:
         ## @brief calibration coefficient
         self.Kyy = 0
         
-        ## @brief calibration coefficient
+        ## @brief calibration offset
         self.x0 = 0
         
-        ## @brief calibration coefficient
+        ## @brief calibration offset
         self.y0 = 0
         
         ## @brief previous x postion, used to calculate velocity.
@@ -147,6 +149,7 @@ class Touch:
         
     def touchFilter(self, num):
         '''!@brief      Filter the results from the touch panel.
+            @param      num Number of measurements to filter.
             @details    Filters by taking the median of several measurements.
             @return     Filtered x and y value.
         '''
@@ -218,7 +221,7 @@ class Touch:
         
     def calibrate(self):
         '''!@brief      Calibrate the touch panel.
-            @details    Calibrates for scale, offset, skew.
+            @details    Calibrates for scale, offset, skew. Creates a text file which can be read from for future calibrations.
         '''
         
         print("Please touch the top left dot.")
