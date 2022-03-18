@@ -1,7 +1,6 @@
 '''!@file    main.py
-    @brief   Lab0x03 main file.
-    @details Create a user interface to use an encoder and return 30 seconds of 
-    data from the motor.
+    @brief   Lab0x04 main file.
+    @details Create a user interface to implement loop control.
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    February 16, 2022

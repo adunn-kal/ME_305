@@ -13,6 +13,11 @@ balanceTimer = 0
 
 def taskTouchFcn(period, position, velocity, myTouch, tVar, filterNum):
     '''!@brief updates reading off touch panel.
+        @param period how frequently the touch panel is updated
+        @param position location of the ball retrieved from the touch class
+        @param velocity velocity of the ball retrieved from the touch class
+        @param tVar shared variable from task user that tells it what state to run
+        @param filterNum number of measurements used in filter
     '''
     ## @brief  The next time the task should run.
     #  @details In uS.

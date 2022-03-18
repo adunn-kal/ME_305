@@ -34,22 +34,13 @@ pVar = shares.Share()
 #
 vVar = shares.Share()
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared gain (Kp) value.
 KpVar = shares.Share(0)
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared gain (Kd) value.
 KdVar = shares.Share(0)
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared state value.
 sVar = shares.Share(0)
 
 
@@ -78,8 +69,8 @@ if __name__ == "__main__":
     #
     imuTask = taskIMU.taskIMUFcn(10000, pVar, vVar, myIMU)
     
-    ## @brief    The IMU task.
-    #  @details  Includes name, period, and all neccesary shared variables.
+    ## @brief    The controller task.
+    #  @details  Includes motor object, period, gains and all neccesary shared variables.
     #
     controllerTask = taskController.taskControllerFcn(10000, pVar, vVar, KpVar,
                                                       KdVar, sVar, motor_1, motor_2)

@@ -1,7 +1,7 @@
 '''!@file    main.py
     @brief   Lab0x02 main file.
     @details Create a user interface to use an encoder and return 30 seconds of 
-    data from the motor.
+    data from the encoder.
     @author  Emma Jacobs
     @author  Alexander Dunn
     @date    February 03, 2022

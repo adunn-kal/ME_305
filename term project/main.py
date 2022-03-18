@@ -25,45 +25,37 @@ import taskTouch
 import touch
 
 
-## @brief    The shared position value.
-#  @details  Measured in ticks, can be positive or negative.
-#
+## @brief    The shared angle value.
 theta = shares.Share()
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared angular velocity value.
 thetaDot = shares.Share()
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared gain values for the inner loop.
 innerGain = shares.Share([0,0])
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared gain values for the outer loop.
 outerGain = shares.Share([0,0])
 
-## @brief    The shared velocity value.
-#  @details  Measured in rad/s, can be positive or negative.
-#            Measures angular velocity in x, y, z.
-#
+## @brief    The shared state value.
 sVar = shares.Share(0)
 
+## @brief    The shared recorded time value.
 tVar = shares.Share(0)
 
+## @brief    The shared recorded velocity values.
 velocity = shares.Share(0)
 
+## @brief    The shared recorded position values.
 position = shares.Share(0)
 
+## @brief    The shared recorded duty cycles.
 duties = shares.Share([0, 0])
 
+## @brief    The shared recorded reference positions.
 refs = shares.Share([0, 0])
 
+## @brief    The number of measurements used in filtering.
 filterNum = shares.Share(4)
 
 
@@ -75,12 +67,14 @@ if __name__ == "__main__":
     motor_2 = Motor(PWM_time, Pin.cpu.B0, Pin.cpu.B1, 3, 4)
     
     # Instantiate IMU object and run calibration
+    ## @brief period IMU runs at.
     imuPeriod = 5000
     myIMU = bno055.BNO055(imuPeriod)
     myIMU.checkCalibration()
     myIMU.operatingMode('IMU')
     
     #Instatiate touch objects
+    ## @brief period touch panel measures at.
     touchPeriod = 5000 # Time to run the update method once with 7 filtered measurements
     myTouch = touch.Touch(Pin.cpu.A7,Pin.cpu.A1,Pin.cpu.A6,Pin.cpu.A0,188,100, touchPeriod)
     myTouch.checkCal()
